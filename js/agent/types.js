@@ -62,7 +62,7 @@
  * @property {string} [avatarId]
  * @property {AgentSoul} soul
  * @property {AgentPersonality} personality
- * @property {AgentRule[]} hardRules
+ * @property {AgentRule[]} guardRails
  * @property {AgentTool[]} tools
  * @property {AgentMemory} memory
  * @property {string} createdAt  ISO-8601.

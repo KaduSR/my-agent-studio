@@ -14,7 +14,7 @@ describe('joinBlocks', () => {
 describe('orderedRuleTexts', () => {
   it('sorts by order and drops blank rules', () => {
     const agent = createEmptyAgent({
-      hardRules: [
+      guardRails: [
         { id: '1', text: 'terceira', order: 2 },
         { id: '2', text: '   ', order: 1 },
         { id: '3', text: 'primeira', order: 0 },
@@ -39,7 +39,7 @@ describe('generateAgentMarkdown', () => {
       '### Tone',
       '### Traits',
       '### Response Style',
-      '## Hard Rules',
+      '## Guard Rails',
       '## Tools',
       '## Memory',
       '### Remember',
@@ -67,13 +67,13 @@ describe('generateAgentMarkdown', () => {
   })
 
   it('omits sections with nothing in them', () => {
-    const agent = createEmptyAgent({ name: 'Vazio', hardRules: [], tools: [] })
+    const agent = createEmptyAgent({ name: 'Vazio', guardRails: [], tools: [] })
     const markdown = generateAgentMarkdown(agent)
 
     expect(markdown).toContain('# Vazio')
     expect(markdown).not.toContain('## Purpose')
     expect(markdown).not.toContain('## Soul')
-    expect(markdown).not.toContain('## Hard Rules')
+    expect(markdown).not.toContain('## Guard Rails')
     expect(markdown).not.toContain('## Tools')
   })
 
@@ -101,7 +101,7 @@ describe('generateAgentMarkdown', () => {
     const agent = createEmptyAgent({
       name: 'Teste',
       objective: 'Objetivo',
-      hardRules: [{ id: '1', text: '# Isto não é um título', order: 0 }],
+      guardRails: [{ id: '1', text: '# Isto não é um título', order: 0 }],
     })
     expect(generateAgentMarkdown(agent)).toContain('1. # Isto não é um título')
   })

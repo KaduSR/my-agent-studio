@@ -56,13 +56,13 @@ export const STEPS = Object.freeze([
   {
     id: 'rules',
     index: 5,
-    label: 'Hard Rules',
+    label: 'Guard Rails',
     hint: 'Limites inegociáveis',
     icon: 'shield-check',
     title: 'O que ele nunca deve fazer',
     subtitle: 'Regras que valem sempre, mesmo quando pedirem o contrário.',
     tooltip:
-      'Hard Rules são limites inegociáveis. Diferente de preferências, elas não podem ser flexibilizadas durante a conversa.',
+      'Guard Rails são limites inegociáveis. Diferente de preferências, elas não podem ser flexibilizadas durante a conversa.',
   },
   {
     id: 'tools',

@@ -6,7 +6,7 @@ import { expect, test } from '@playwright/test'
  */
 
 /**
- * The rail states each step outright ("Etapa 5: Hard Rules. ..."), which is
+ * The rail states each step outright ("Etapa 5: Guard Rails. ..."), which is
  * what makes the icon-only navigation usable without sight.
  * @param {import('@playwright/test').Page} page
  * @param {string} label
@@ -65,7 +65,7 @@ test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
   await expect(page.getByText(/no máximo 3 tons/)).toBeVisible()
 
   // --- hard rules -------------------------------------------------------
-  await step(page, 'Hard Rules').click()
+  await step(page, 'Guard Rails').click()
   await page.getByLabel('Nova regra').fill('Corrija erros sem constranger o aluno.')
   await page.getByLabel('Nova regra').press('Enter')
   await expect(page.getByRole('textbox', { name: 'Regra 5' })).toHaveValue(
@@ -104,7 +104,7 @@ test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
 
   const clipboard = await page.evaluate(() => navigator.clipboard.readText())
   expect(clipboard).toContain('# Tutor de Inglês')
-  expect(clipboard).toContain('## Hard Rules')
+  expect(clipboard).toContain('## Guard Rails')
   expect(clipboard).toContain('Corrija erros sem constranger o aluno.')
 })
 
@@ -128,7 +128,7 @@ test('state survives a reload and the agent reaches the library (SPEC 73, 93)', 
 
 test('reorders a hard rule with the keyboard alone (SPEC 65)', async ({ page }) => {
   await page.goto('/#/studio/new')
-  await step(page, 'Hard Rules').click()
+  await step(page, 'Guard Rails').click()
 
   const first = page.getByRole('textbox', { name: 'Regra 1' })
   const second = page.getByRole('textbox', { name: 'Regra 2' })
@@ -283,7 +283,7 @@ test('a template fills in every step, not just the header', async ({ page }) => 
   )
 
   // Hard rules — the template's own, not the generic defaults.
-  await step(page, 'Hard Rules').click()
+  await step(page, 'Guard Rails').click()
   await expect(page.getByRole('textbox', { name: 'Regra 1' })).toHaveValue(
     'Nunca invente números, cases ou resultados de clientes.'
   )
@@ -362,9 +362,88 @@ test('templates are reachable from the empty library and the palette', async ({ 
   await expect(page.getByLabel('Nome do agente')).toHaveValue('Redator de E-mails de Vendas')
 })
 
+test('the keynote runs end to end from both entry points', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Como funciona?' }).click()
+
+  const keynote = page.locator('dialog.keynote')
+  await expect(keynote).toBeVisible()
+  await expect(page.locator('.keynote__title')).toHaveText('O que é um agente?')
+  await expect(page.locator('.keynote__counter')).toHaveText('1 / 10')
+  // Nothing to go back to on the first slide.
+  await expect(page.getByRole('button', { name: 'Slide anterior' })).toBeDisabled()
+
+  // Walk to the end with the keyboard alone.
+  for (let i = 0; i < 9; i += 1) await page.keyboard.press('ArrowRight')
+
+  await expect(page.locator('.keynote__counter')).toHaveText('10 / 10')
+  await expect(page.locator('.keynote__title')).toHaveText('Agora esculpe o seu')
+  await expect(page.getByRole('button', { name: 'Próximo slide' })).toBeDisabled()
+
+  // Back one, then jump home and to the end.
+  await page.keyboard.press('ArrowLeft')
+  await expect(page.locator('.keynote__counter')).toHaveText('9 / 10')
+  await page.keyboard.press('Home')
+  await expect(page.locator('.keynote__counter')).toHaveText('1 / 10')
+
+  await page.keyboard.press('Escape')
+  await expect(keynote).toHaveCount(0)
+
+  // The header opens the same experience, from inside the builder.
+  await page.goto('/#/studio/new')
+  await page.getByRole('button', { name: 'Como funciona' }).click()
+  await expect(page.locator('dialog.keynote')).toBeVisible()
+})
+
+test('the keynote explains Guard Rails with the nose that grows', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Como funciona?' }).click()
+  for (let i = 0; i < 5; i += 1) await page.keyboard.press('ArrowRight')
+
+  await expect(page.locator('.keynote__title')).toHaveText('Guard Rails')
+  await expect(page.locator('.keynote__story')).toContainText('o nariz crescia')
+
+  // The drawing has to change too, not just the words: the nose wedge is
+  // markedly longer on this slide than on any other.
+  const noseWidth = async () =>
+    page.evaluate(() => {
+      const paths = [...document.querySelectorAll('.puppet path')]
+      const nose = paths.find((p) => (p.getAttribute('d') ?? '').startsWith('M100 100 L'))
+      return nose ? nose.getBoundingClientRect().width : 0
+    })
+
+  const onGuardRails = await noseWidth()
+  await page.keyboard.press('ArrowRight')
+  const onTools = await noseWidth()
+
+  expect(onGuardRails).toBeGreaterThan(onTools * 2)
+})
+
+test('the closing slide leads into the builder', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Como funciona?' }).click()
+  await page.keyboard.press('End')
+
+  await page.getByRole('button', { name: 'Criar meu agente' }).click()
+  await expect(page.locator('dialog.keynote')).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Como seu agente se chama?' })).toBeVisible()
+})
+
+test('the export says Guard Rails, not Hard Rules', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+
+  await page.goto('/#/studio/new/sales-email')
+  await step(page, 'Exportar').click()
+  await page.getByRole('button', { name: 'Copiar Markdown' }).click()
+
+  const markdown = await page.evaluate(() => navigator.clipboard.readText())
+  expect(markdown).toContain('## Guard Rails')
+  expect(markdown).not.toContain('Hard Rules')
+})
+
 test('undo restores a deleted rule (SPEC 58)', async ({ page }) => {
   await page.goto('/#/studio/new')
-  await step(page, 'Hard Rules').click()
+  await step(page, 'Guard Rails').click()
 
   const originalFirst = await page.getByRole('textbox', { name: 'Regra 1' }).inputValue()
   await page.getByRole('button', { name: 'Remover regra 1' }).click()

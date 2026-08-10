@@ -58,7 +58,7 @@ export function numbered(items) {
  * @returns {string[]}
  */
 export function orderedRuleTexts(agent) {
-  return [...agent.hardRules]
+  return [...agent.guardRails]
     .sort((a, b) => a.order - b.order)
     .map((rule) => rule.text.trim())
     .filter((text) => text.length > 0)
@@ -125,7 +125,7 @@ export function personalitySection(agent, level = 2) {
 export function rulesSection(agent, level = 2) {
   const rules = orderedRuleTexts(agent)
   if (rules.length === 0) return ''
-  return joinBlocks(heading(level, 'Hard Rules'), numbered(rules))
+  return joinBlocks(heading(level, 'Guard Rails'), numbered(rules))
 }
 
 /**

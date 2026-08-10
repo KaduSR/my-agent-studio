@@ -49,7 +49,7 @@ describe('editing (SPEC 27)', () => {
 
     // Same element throughout: the caret must never be yanked mid-typing.
     expect(screen.getByRole('textbox', { name: 'Regra 1' })).toBe(first)
-    expect(getAgent().hardRules[0].text).toBe('Texto editado')
+    expect(getAgent().guardRails[0].text).toBe('Texto editado')
   })
 
   it('removes a rule and offers an undo (SPEC 58)', async () => {

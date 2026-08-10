@@ -85,7 +85,7 @@ describe.each(TEMPLATES.map((template) => [template.id, template]))(
       expect(template.tagline.length).toBeGreaterThan(0)
       expect(template.agent.objective.length).toBeGreaterThan(40)
       expect(template.agent.soul.mission.length).toBeGreaterThan(0)
-      expect(template.agent.hardRules.length).toBeGreaterThanOrEqual(4)
+      expect(template.agent.guardRails.length).toBeGreaterThanOrEqual(4)
     })
   }
 )
@@ -108,7 +108,7 @@ describe('createAgentFromTemplate', () => {
     expect(agent.soul.values.length).toBeGreaterThan(0)
     expect(agent.personality.tones.length).toBe(3)
     expect(agent.personality.responseStyle).toBe('clear-direct')
-    expect(agent.hardRules.length).toBe(6)
+    expect(agent.guardRails.length).toBe(6)
     expect(agent.tools.filter((tool) => tool.enabled).length).toBe(2)
     expect(agent.memory.type).toBe('persistent')
     expect(agent.memory.remember.length).toBe(3)
@@ -129,15 +129,15 @@ describe('createAgentFromTemplate', () => {
     const first = createAgentFromTemplate('sales-email')
     const second = createAgentFromTemplate('sales-email')
 
-    const firstIds = first.hardRules.map((rule) => rule.id)
+    const firstIds = first.guardRails.map((rule) => rule.id)
     expect(new Set(firstIds).size).toBe(firstIds.length)
-    expect(firstIds).not.toEqual(second.hardRules.map((rule) => rule.id))
+    expect(firstIds).not.toEqual(second.guardRails.map((rule) => rule.id))
     expect(first.id).not.toBe(second.id)
   })
 
   it('numbers hard rules contiguously from zero', () => {
     const agent = createAgentFromTemplate('benchmark-research')
-    expect(agent.hardRules.map((rule) => rule.order)).toEqual([0, 1, 2, 3, 4, 5])
+    expect(agent.guardRails.map((rule) => rule.order)).toEqual([0, 1, 2, 3, 4, 5])
   })
 
   it('adds template restrictions on top of the SPEC 77 defaults, never instead of them', () => {

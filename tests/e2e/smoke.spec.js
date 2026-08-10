@@ -27,7 +27,7 @@ test('every route loads with no console errors', async ({ page }) => {
     'Objetivo',
     'Soul',
     'Personalidade',
-    'Hard Rules',
+    'Guard Rails',
     'Ferramentas',
     'Memória',
     'Exportar',

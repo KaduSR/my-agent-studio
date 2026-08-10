@@ -131,13 +131,13 @@ export function validateAgent(agent) {
     }
   }
 
-  if (agent.hardRules.length > LIMITS.maxRules) {
-    errors.hardRules = `Use no máximo ${LIMITS.maxRules} regras.`
+  if (agent.guardRails.length > LIMITS.maxRules) {
+    errors.guardRails = `Use no máximo ${LIMITS.maxRules} regras.`
   }
-  for (const rule of agent.hardRules) {
+  for (const rule of agent.guardRails) {
     const message = validateField('rule', rule.text)
     if (message) {
-      errors.hardRules = message
+      errors.guardRails = message
       break
     }
   }

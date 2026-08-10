@@ -234,7 +234,7 @@ export function addRule(text) {
   if (!trimmed) return
   patchAgent((agent) => ({
     ...agent,
-    hardRules: renumber([...agent.hardRules, createRule(trimmed, agent.hardRules.length)]),
+    guardRails: renumber([...agent.guardRails, createRule(trimmed, agent.guardRails.length)]),
   }))
 }
 
@@ -246,7 +246,7 @@ export function addRule(text) {
 export function updateRuleText(id, text) {
   patchAgent((agent) => ({
     ...agent,
-    hardRules: agent.hardRules.map((rule) => (rule.id === id ? { ...rule, text } : rule)),
+    guardRails: agent.guardRails.map((rule) => (rule.id === id ? { ...rule, text } : rule)),
   }))
 }
 
@@ -257,14 +257,14 @@ export function updateRuleText(id, text) {
  */
 export function removeRule(id) {
   const agent = getAgent()
-  const index = agent.hardRules.findIndex((rule) => rule.id === id)
+  const index = agent.guardRails.findIndex((rule) => rule.id === id)
   if (index === -1) return
 
-  const rule = agent.hardRules[index]
+  const rule = agent.guardRails[index]
   builderStore.setState({ lastRemovedRule: { rule, index } })
   patchAgent((current) => ({
     ...current,
-    hardRules: renumber(current.hardRules.filter((candidate) => candidate.id !== id)),
+    guardRails: renumber(current.guardRails.filter((candidate) => candidate.id !== id)),
   }))
 }
 
@@ -274,9 +274,9 @@ export function undoRemoveRule() {
   if (!removed) return false
 
   patchAgent((agent) => {
-    const rules = [...agent.hardRules]
+    const rules = [...agent.guardRails]
     rules.splice(Math.min(removed.index, rules.length), 0, removed.rule)
-    return { ...agent, hardRules: renumber(rules) }
+    return { ...agent, guardRails: renumber(rules) }
   })
   builderStore.setState({ lastRemovedRule: null })
   return true
@@ -289,11 +289,11 @@ export function undoRemoveRule() {
  */
 export function moveRule(from, to) {
   patchAgent((agent) => {
-    const rules = [...agent.hardRules].sort((a, b) => a.order - b.order)
+    const rules = [...agent.guardRails].sort((a, b) => a.order - b.order)
     if (from < 0 || from >= rules.length || to < 0 || to >= rules.length || from === to) return agent
     const [moved] = rules.splice(from, 1)
     rules.splice(to, 0, moved)
-    return { ...agent, hardRules: renumber(rules) }
+    return { ...agent, guardRails: renumber(rules) }
   })
 }
 

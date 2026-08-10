@@ -62,7 +62,7 @@ describe('security (SPEC 67)', () => {
     const agent = createEmptyAgent({
       name: '<img src=x onerror=alert(1)>',
       objective: '<script>alert("xss")</script>',
-      hardRules: [{ id: '1', text: '<iframe src="evil"></iframe>', order: 0 }],
+      guardRails: [{ id: '1', text: '<iframe src="evil"></iframe>', order: 0 }],
     })
 
     const host = document.createElement('div')

@@ -1,5 +1,5 @@
 // @ts-check
-/** Step 5 — Hard Rules (SPEC 27, 28). */
+/** Step 5 — Guard Rails (SPEC 27, 28). */
 
 import { h, on, setChildren } from '../lib/dom.js'
 import { icon } from '../icons.js'
@@ -49,9 +49,9 @@ export function rulesStep() {
 
   // The list and the empty state swap based on whether any rule exists.
   const listArea = reactiveBlock(
-    (state) => state.agent.hardRules.length === 0,
+    (state) => state.agent.guardRails.length === 0,
     (container) => {
-      const isEmpty = builderStore.getState().agent.hardRules.length === 0
+      const isEmpty = builderStore.getState().agent.guardRails.length === 0
       setChildren(
         container,
         isEmpty
@@ -67,10 +67,10 @@ export function rulesStep() {
   )
 
   const suggestions = reactiveBlock(
-    (state) => state.agent.hardRules.map((rule) => rule.text.trim().toLowerCase()).join('|'),
+    (state) => state.agent.guardRails.map((rule) => rule.text.trim().toLowerCase()).join('|'),
     (container) => {
       const existing = new Set(
-        builderStore.getState().agent.hardRules.map((rule) => rule.text.trim().toLowerCase())
+        builderStore.getState().agent.guardRails.map((rule) => rule.text.trim().toLowerCase())
       )
       const available = RULE_SUGGESTIONS.filter(
         (suggestion) => !existing.has(suggestion.toLowerCase())

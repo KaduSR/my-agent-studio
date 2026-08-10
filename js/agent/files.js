@@ -197,7 +197,7 @@ export function buildFileTree(agent, presetId) {
       { path: 'CLAUDE.md', content: generateClaudeMarkdown(agent) },
       { path: 'soul.md', content: soul ? `${soul}\n` : standaloneDoc('Soul', '') },
       { path: 'personality.md', content: personality ? `${personality}\n` : standaloneDoc('Personality', '') },
-      { path: 'rules.md', content: rules ? `${rules}\n` : standaloneDoc('Hard Rules', '') },
+      { path: 'rules.md', content: rules ? `${rules}\n` : standaloneDoc('Guard Rails', '') },
       { path: 'memory.md', content: generateMemoryFile(agent) },
       { path: 'references/README.md', content: REFERENCES_README },
     ]
@@ -208,7 +208,7 @@ export function buildFileTree(agent, presetId) {
     { path: 'README.md', content: generateReadme(agent) },
     { path: 'soul.md', content: soul ? `${soul}\n` : standaloneDoc('Soul', '') },
     { path: 'personality.md', content: personality ? `${personality}\n` : standaloneDoc('Personality', '') },
-    { path: 'rules.md', content: rules ? `${rules}\n` : standaloneDoc('Hard Rules', '') },
+    { path: 'rules.md', content: rules ? `${rules}\n` : standaloneDoc('Guard Rails', '') },
     { path: 'tools.md', content: tools ? `${tools}\n` : standaloneDoc('Tools', 'Nenhuma ferramenta selecionada.') },
     { path: 'memory.md', content: generateMemoryFile(agent) },
     { path: 'config.json', content: generateConfigJson(agent) },

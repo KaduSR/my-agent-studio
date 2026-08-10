@@ -16,7 +16,7 @@ import { h, s, on } from '../lib/dom.js'
 import { icon } from '../icons.js'
 import { navigate } from '../router.js'
 import { openCommandPalette } from '../ui/command-palette.js'
-import { confirmDialog } from '../ui/dialog.js'
+import { openKeynote } from '../ui/keynote.js'
 import { infoTooltip } from '../ui/tooltip.js'
 
 /**
@@ -43,17 +43,6 @@ function brandMark() {
     ),
     s('circle', { cx: '16', cy: '16', r: '13', fill: 'none', stroke: 'url(#brand-orb)', 'stroke-width': '5' })
   )
-}
-
-/** @returns {Promise<void>} */
-async function openHelp() {
-  await confirmDialog({
-    title: 'Sobre o My Agent Studio',
-    description:
-      'Configure seu agente pelas oito etapas da lateral. Cada escolha atualiza o Markdown do painel direito na hora. Quando estiver pronto, use a etapa Exportar para copiar o texto ou baixar a estrutura completa de arquivos. Tudo acontece dentro deste navegador: nada é enviado para servidores.',
-    confirmLabel: 'Entendi',
-    cancelLabel: 'Fechar',
-  })
 }
 
 /**
@@ -128,8 +117,9 @@ export function appHeader(crumbs) {
         {
           type: 'button',
           class: 'btn btn-ghost btn-icon',
-          'aria-label': 'Ajuda',
-          onclick: openHelp,
+          'aria-label': 'Como funciona',
+          title: 'Como funciona',
+          onclick: openKeynote,
         },
         icon('life-buoy', { size: 17 })
       )

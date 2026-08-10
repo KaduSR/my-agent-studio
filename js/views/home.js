@@ -12,6 +12,7 @@ import { relativeTime } from '../components/agent-card.js'
 import { templateGrid } from '../components/template-picker.js'
 import { confirmDialog } from '../ui/dialog.js'
 import { showToast } from '../ui/toast.js'
+import { openKeynote } from '../ui/keynote.js'
 
 const RECENT_LIMIT = 3
 
@@ -137,6 +138,16 @@ export function homeView() {
             {
               type: 'button',
               class: 'btn btn-secondary',
+              onclick: openKeynote,
+            },
+            icon('sparkles', { size: 16 }),
+            'Como funciona?'
+          ),
+          h(
+            'button',
+            {
+              type: 'button',
+              class: 'btn btn-ghost',
               onclick: () => navigate('/studio'),
             },
             icon('folder', { size: 16 }),

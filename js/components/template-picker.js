@@ -17,10 +17,10 @@ import { navigate } from '../router.js'
  * @returns {string}
  */
 function summarise(template) {
-  const { personality, hardRules, tools } = template.agent
+  const { personality, guardRails, tools } = template.agent
   const parts = [
     `${personality.tones.length} ${personality.tones.length === 1 ? 'tom' : 'tons'}`,
-    `${hardRules.length} regras`,
+    `${guardRails.length} regras`,
     `${tools.length} ${tools.length === 1 ? 'ferramenta' : 'ferramentas'}`,
   ]
   return parts.join(' · ')

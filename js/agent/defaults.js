@@ -12,7 +12,7 @@ import { DEFAULT_AVATAR_ID } from '../data/avatars.js'
 import { getTemplate } from '../data/templates.js'
 
 /** SPEC 76. */
-export const DEFAULT_HARD_RULES = Object.freeze([
+export const DEFAULT_GUARD_RAILS = Object.freeze([
   'Nunca invente informações.',
   'Se não souber algo, diga explicitamente.',
   'Priorize clareza e objetividade.',
@@ -87,7 +87,7 @@ export function createEmptyAgent(overrides = {}) {
       traits: [],
       ...DEFAULT_SLIDERS,
     },
-    hardRules: DEFAULT_HARD_RULES.map((text, index) => createRule(text, index)),
+    guardRails: DEFAULT_GUARD_RAILS.map((text, index) => createRule(text, index)),
     tools: createDefaultTools(),
     memory: createDefaultMemory(),
     createdAt: now,
@@ -125,7 +125,7 @@ export function createAgentFromTemplate(templateId) {
     objective: source.objective,
     soul: { ...base.soul, ...source.soul },
     personality: { ...base.personality, ...source.personality },
-    hardRules: source.hardRules.map((text, index) => createRule(text, index)),
+    guardRails: source.guardRails.map((text, index) => createRule(text, index)),
     tools: base.tools.map((tool) =>
       enabled.has(tool.id) ? { ...tool, enabled: true } : tool
     ),
@@ -151,7 +151,7 @@ export function duplicateAgent(agent) {
     ...structuredClone(agent),
     id: uuid(),
     name: `${agent.name} — Cópia`,
-    hardRules: agent.hardRules.map((rule) => ({ ...rule, id: uuid() })),
+    guardRails: agent.guardRails.map((rule) => ({ ...rule, id: uuid() })),
     createdAt: now,
     updatedAt: now,
   }

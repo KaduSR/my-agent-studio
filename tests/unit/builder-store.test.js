@@ -24,7 +24,7 @@ import {
 import { createEmptyAgent } from '../../js/agent/defaults.js'
 
 const ruleTexts = () =>
-  [...getAgent().hardRules].sort((a, b) => a.order - b.order).map((rule) => rule.text)
+  [...getAgent().guardRails].sort((a, b) => a.order - b.order).map((rule) => rule.text)
 
 beforeEach(() => {
   loadAgent(createEmptyAgent())
@@ -120,17 +120,17 @@ describe('hard rules', () => {
       'primeira',
       'segunda',
     ])
-    expect(getAgent().hardRules.map((rule) => rule.order)).toEqual([0, 1, 2, 3, 4, 5])
+    expect(getAgent().guardRails.map((rule) => rule.order)).toEqual([0, 1, 2, 3, 4, 5])
   })
 
   it('ignores an empty rule', () => {
-    const before = getAgent().hardRules.length
+    const before = getAgent().guardRails.length
     addRule('   ')
-    expect(getAgent().hardRules).toHaveLength(before)
+    expect(getAgent().guardRails).toHaveLength(before)
   })
 
   it('edits a rule in place', () => {
-    const id = getAgent().hardRules[0].id
+    const id = getAgent().guardRails[0].id
     updateRuleText(id, 'texto novo')
     expect(ruleTexts()[0]).toBe('texto novo')
   })
@@ -143,7 +143,7 @@ describe('hard rules', () => {
       'Nunca invente informações.',
       'Proteja informações privadas do usuário.',
     ])
-    expect(getAgent().hardRules.map((rule) => rule.order)).toEqual([0, 1, 2, 3])
+    expect(getAgent().guardRails.map((rule) => rule.order)).toEqual([0, 1, 2, 3])
   })
 
   it('moves a rule up', () => {
@@ -160,13 +160,13 @@ describe('hard rules', () => {
   })
 
   it('restores a removed rule at its original index (SPEC 58)', () => {
-    const target = getAgent().hardRules[1]
+    const target = getAgent().guardRails[1]
     removeRule(target.id)
     expect(ruleTexts()).not.toContain(target.text)
 
     expect(undoRemoveRule()).toBe(true)
     expect(ruleTexts()[1]).toBe(target.text)
-    expect(getAgent().hardRules.map((rule) => rule.order)).toEqual([0, 1, 2, 3])
+    expect(getAgent().guardRails.map((rule) => rule.order)).toEqual([0, 1, 2, 3])
   })
 
   it('undo is a no-op when nothing was removed', () => {

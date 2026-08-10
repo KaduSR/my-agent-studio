@@ -64,7 +64,7 @@ describe('getExportBlockers', () => {
     const agent = createEmptyAgent({
       name: 'Mínimo',
       objective: 'Fazer algo',
-      hardRules: [],
+      guardRails: [],
       tools: [],
     })
     expect(getExportBlockers(agent)).toEqual([])

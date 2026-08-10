@@ -28,7 +28,7 @@ export function isStepComplete(agent, step) {
         agent.personality.responseStyle.length > 0
       )
     case 'rules':
-      return agent.hardRules.some((rule) => rule.text.trim().length > 0)
+      return agent.guardRails.some((rule) => rule.text.trim().length > 0)
     case 'tools':
       return agent.tools.some((tool) => tool.enabled)
     case 'memory':

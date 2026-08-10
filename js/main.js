@@ -14,7 +14,7 @@ import { homeView } from './views/home.js'
 import { libraryView } from './views/library.js'
 import { builderView } from './views/builder.js'
 import { loadAgent } from './stores/builder-store.js'
-import { getAgent, loadLibrary } from './stores/library-store.js'
+import { getAgent, loadLibrary, reviveAgent } from './stores/library-store.js'
 import { setPersisted, startAutosave } from './stores/autosave.js'
 import { createAgentFromTemplate, createEmptyAgent } from './agent/defaults.js'
 import { isTemplateId } from './data/templates.js'
@@ -52,8 +52,10 @@ function agentForNewRoute(templateId) {
     return createAgentFromTemplate(templateId)
   }
 
-  const draft = readJSON(STORAGE_KEYS.draft, /** @type {import('./agent/types.js').Agent | null} */ (null))
-  if (draft && typeof draft.id === 'string') {
+  // The draft goes through the same revival as the library, so a record written
+  // by an older version comes back complete rather than subtly malformed.
+  const draft = reviveAgent(readJSON(STORAGE_KEYS.draft, /** @type {unknown} */ (null)))
+  if (draft) {
     showToast({ message: 'Rascunho restaurado.', variant: 'info' })
     trackEvent('draft_restored', { agentId: draft.id })
     return draft

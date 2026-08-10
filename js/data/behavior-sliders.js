@@ -69,7 +69,7 @@ export const BEHAVIOR_SLIDERS = Object.freeze([
     lowLabel: 'Sempre confirma',
     highLabel: 'Decide sozinho',
     tooltip:
-      'Autonomia alta significa que o agente segue adiante sem perguntar. Combine com Hard Rules claras para evitar surpresas.',
+      'Autonomia alta significa que o agente segue adiante sem perguntar. Combine com Guard Rails claras para evitar surpresas.',
   },
 ])
 

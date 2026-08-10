@@ -33,7 +33,7 @@
  *   detail: number,
  *   autonomy: number,
  * }} personality
- * @property {string[]} hardRules Plain text; rule ids are minted on creation.
+ * @property {string[]} guardRails Plain text; rule ids are minted on creation.
  * @property {string[]} tools Tool ids to enable.
  * @property {{ type: import('../agent/types.js').MemoryType, remember: string[] }} memory
  * @property {string[]} [extraRestrictions] Appended to the SPEC 77 defaults.
@@ -77,7 +77,7 @@ export const TEMPLATES = Object.freeze([
         detail: 40,
         autonomy: 45,
       },
-      hardRules: [
+      guardRails: [
         'Nunca invente números, cases ou resultados de clientes.',
         'Nunca prometa o que o produto não entrega.',
         'Mantenha o e-mail abaixo de 150 palavras, salvo pedido explícito.',
@@ -123,7 +123,7 @@ export const TEMPLATES = Object.freeze([
         detail: 70,
         autonomy: 50,
       },
-      hardRules: [
+      guardRails: [
         'Pergunte qual decisão o dashboard precisa apoiar antes de propor gráficos.',
         'Escolha o tipo de gráfico pelo dado, nunca pela estética.',
         'Garanta contraste suficiente e navegação por teclado em tudo que propor.',
@@ -166,7 +166,7 @@ export const TEMPLATES = Object.freeze([
         detail: 85,
         autonomy: 40,
       },
-      hardRules: [
+      guardRails: [
         'Cite a fonte de cada afirmação comparativa.',
         'Declare os critérios de comparação antes de comparar.',
         'Separe o que foi medido do que foi apenas anunciado pelo fornecedor.',

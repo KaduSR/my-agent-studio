@@ -25,12 +25,17 @@ export const libraryStore = createStore(
 )
 
 /**
- * Coerce a stored record into a complete Agent, filling in anything a older
+ * Coerce a stored record into a complete Agent, filling in anything an older
  * version may not have written.
+ *
+ * This is the migration seam. Everything read back from storage has to pass
+ * through here — including the draft — or a renamed field silently comes back
+ * empty instead of failing loudly.
+ *
  * @param {unknown} raw
  * @returns {import('../agent/types.js').Agent | null}
  */
-function reviveAgent(raw) {
+export function reviveAgent(raw) {
   if (typeof raw !== 'object' || raw === null) return null
   const record = /** @type {Record<string, unknown>} */ (raw)
   if (typeof record.id !== 'string' || record.id.length === 0) return null
@@ -49,9 +54,20 @@ function reviveAgent(raw) {
       ...base.memory,
       ...(typeof record.memory === 'object' && record.memory ? record.memory : {}),
     },
-    hardRules: Array.isArray(record.hardRules) ? record.hardRules : base.hardRules,
+    // `hardRules` is the pre-rename name. Agents saved before Guard Rails
+    // existed still carry it, and dropping it would make their rules vanish
+    // from the UI without any error to notice.
+    guardRails: Array.isArray(record.guardRails)
+      ? record.guardRails
+      : Array.isArray(record.hardRules)
+        ? record.hardRules
+        : base.guardRails,
     tools: Array.isArray(record.tools) && record.tools.length > 0 ? record.tools : base.tools,
   }
+
+  // The legacy key must not survive into the new record, or it would be written
+  // straight back to storage on the next autosave.
+  delete (/** @type {Record<string, unknown>} */ (agent)).hardRules
 
   return /** @type {import('../agent/types.js').Agent} */ (agent)
 }

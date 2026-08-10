@@ -94,13 +94,23 @@ O objeto `Agent` é a **única fonte de verdade**. Markdown, `config.json` e a
 isso que o preview pode ser regenerado a cada tecla digitada sem risco de
 divergir do que será exportado.
 
+## Como funciona (no app)
+
+O botão **Como funciona?** na home abre uma apresentação animada que explica o
+que é um agente e cada uma das oito etapas usando a história do Pinóquio — de
+bloco de madeira a menino de verdade. As transições usam FLIP sobre a Web
+Animations API, então o efeito é idêntico em todos os navegadores.
+
 ## Acessibilidade
 
 Meta: WCAG 2.1 AA.
 
-Toda a aplicação é operável por teclado, incluindo a reordenação das Hard Rules:
+Toda a aplicação é operável por teclado, incluindo a reordenação das Guard Rails:
 foque a alça, **Espaço** para pegar, **setas** para mover, **Espaço** para
 soltar, **Esc** para cancelar. Cada movimento é anunciado por uma live region.
+
+No keynote, as setas ← → navegam, `Home`/`End` vão para as pontas e `Esc` fecha.
+Quem tem "reduzir movimento" ligado no sistema recebe os slides sem o morph.
 
 Atalhos: `Ctrl/Cmd + K` abre a busca.
 

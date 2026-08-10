@@ -1,5 +1,5 @@
 // @ts-check
-/** Quick-add suggestions for the Hard Rules step (SPEC 28). */
+/** Quick-add suggestions for the Guard Rails step (SPEC 28). */
 
 /** @type {ReadonlyArray<string>} */
 export const RULE_SUGGESTIONS = Object.freeze([

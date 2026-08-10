@@ -30,7 +30,7 @@ import { announce, showToast } from '../ui/toast.js'
 
 /** @returns {import('../agent/types.js').AgentRule[]} */
 function orderedRules() {
-  return [...builderStore.getState().agent.hardRules].sort((a, b) => a.order - b.order)
+  return [...builderStore.getState().agent.guardRails].sort((a, b) => a.order - b.order)
 }
 
 /** @returns {{ element: HTMLElement, destroy: () => void }} */
@@ -264,7 +264,7 @@ export function sortableRules() {
   // re-render, so the caret stays where the user put it.
   const unsubscribe = builderStore.select(
     (state) =>
-      [...state.agent.hardRules]
+      [...state.agent.guardRails]
         .sort((a, b) => a.order - b.order)
         .map((rule) => rule.id)
         .join('|'),
