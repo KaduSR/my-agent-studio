@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>My Agent Studio</title>
+    <meta
+      name="description"
+      content="Crie agentes de IA como você cria personagens. Configure identidade, personalidade, regras e memória, e exporte tudo como Markdown."
+    />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#ffffff" />
+
+    <!--
+      Inline gradient orb. Keeping the favicon as a data URI avoids an extra
+      request and keeps the brand mark original — SPEC 14 and SPEC 74 forbid
+      borrowing any Instagram or Meta asset.
+    -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23833AB4'/%3E%3Cstop offset='.5' stop-color='%23E1306C'/%3E%3Cstop offset='1' stop-color='%23FCAF45'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='url(%23g)' stroke-width='5'/%3E%3C/svg%3E"
+    />
+
+    <link rel="stylesheet" href="css/tokens.css" />
+    <link rel="stylesheet" href="css/base.css" />
+    <link rel="stylesheet" href="css/layout.css" />
+    <link rel="stylesheet" href="css/components.css" />
+    <link rel="stylesheet" href="css/builder.css" />
+    <link rel="stylesheet" href="css/preview.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Pular para o conteúdo</a>
+
+    <!-- Every view is built with createElement; nothing is injected as HTML. -->
+    <div id="app"></div>
+
+    <!-- Toast host (SPEC 82). Announcements are polite so they never interrupt. -->
+    <div id="toast-region" class="toast-region" role="status" aria-live="polite"></div>
+
+    <!-- Drag-and-drop and reordering announcements (SPEC 65). -->
+    <div id="live-region" class="sr-only" role="status" aria-live="assertive"></div>
+
+    <noscript>
+      <p style="padding: 24px; font-family: system-ui, sans-serif">
+        O Agent Studio precisa de JavaScript para funcionar. Todo o processamento
+        acontece no seu navegador — nada é enviado para servidores.
+      </p>
+    </noscript>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

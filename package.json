@@ -1,0 +1,29 @@
+{
+  "name": "my-agent-studio",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Crie agentes de IA como voce cria personagens. App estatico: HTML, CSS e JavaScript, sem build e sem backend.",
+  "scripts": {
+    "dev": "serve . --listen 4173 --no-clipboard",
+    "typecheck": "tsc -p jsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "check": "npm run typecheck && npm run lint && npm run test"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@playwright/test": "^1.49.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^26.2.0",
+    "eslint": "^9.15.0",
+    "globals": "^15.12.0",
+    "jsdom": "^25.0.1",
+    "serve": "^14.2.4",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.6"
+  }
+}

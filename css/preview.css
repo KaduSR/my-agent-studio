@@ -1,0 +1,215 @@
+/* Markdown preview panel (SPEC 34). Rectangular, editor-like, with a line gutter. */
+
+.preview__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface);
+  flex: none;
+}
+
+.preview__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.preview__toggle:hover {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.preview__title-group {
+  flex: 1;
+}
+
+/* The vertical caption only exists in the collapsed rail. */
+.preview__rail-label {
+  display: none;
+}
+
+/* ------------------------------- collapsed ------------------------------ */
+
+.preview[data-collapsed='true'] {
+  background: var(--surface);
+}
+
+.preview[data-collapsed='true'] .preview__header {
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) 0;
+  border-bottom: none;
+  height: 100%;
+  align-items: center;
+}
+
+.preview[data-collapsed='true'] .preview__title-group,
+.preview[data-collapsed='true'] .btn {
+  display: none;
+}
+
+.preview[data-collapsed='true'] .preview__rail-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--text-helper);
+  color: var(--text-muted);
+  writing-mode: vertical-rl;
+  letter-spacing: 0.04em;
+  user-select: none;
+}
+
+.preview[data-collapsed='true'] .preview__body {
+  display: none;
+}
+
+.preview__title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.preview__title {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+}
+
+.save-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.save-status__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--text-disabled);
+}
+
+.save-status[data-status='saved'] .save-status__dot {
+  background: var(--success);
+}
+
+.save-status[data-status='saving'] .save-status__dot {
+  background: var(--warning);
+}
+
+.save-status[data-status='error'] {
+  color: var(--danger);
+}
+
+.save-status[data-status='error'] .save-status__dot {
+  background: var(--danger);
+}
+
+.preview__body {
+  /*
+   * The gutter and the code column are separate elements, so they only stay
+   * in step if both use the same computed line box. --md-row is that shared
+   * value; the gutter may use a smaller font, but never a smaller row.
+   */
+  --md-font-size: 12.5px;
+  --md-row: calc(12.5px * 1.65);
+
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--surface-code);
+  font-family: var(--font-mono);
+  font-size: var(--md-font-size);
+  line-height: var(--md-row);
+}
+
+.md-gutter {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  padding: var(--space-4) var(--space-2) var(--space-4) var(--space-4);
+  text-align: right;
+  color: var(--text-disabled);
+  background: var(--surface-secondary);
+  border-right: 1px solid var(--border-subtle);
+  user-select: none;
+  font-variant-numeric: tabular-nums;
+  position: sticky;
+  left: 0;
+}
+
+.md-gutter__number {
+  display: block;
+  font-size: 11px;
+  line-height: var(--md-row);
+}
+
+.md-pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: var(--space-4);
+  white-space: pre;
+  tab-size: 2;
+}
+
+.md-code-body {
+  font-family: inherit;
+}
+
+.md-line {
+  display: block;
+  min-height: var(--md-row);
+  line-height: var(--md-row);
+}
+
+.md-heading-text {
+  font-weight: var(--weight-bold);
+}
+
+.md-heading--1 .md-heading-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 15px;
+}
+
+.md-heading--2 .md-heading-text {
+  color: var(--accent-deep);
+}
+
+.md-heading--3 .md-heading-text {
+  color: var(--accent);
+}
+
+.md-marker {
+  color: var(--text-disabled);
+}
+
+.md-quote {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.md-strong {
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.md-code {
+  color: var(--accent-hot);
+}

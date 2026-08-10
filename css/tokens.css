@@ -1,0 +1,146 @@
+/*
+ * Agent Studio — design tokens (SPEC 10, 11, 12).
+ *
+ * Accessibility note: SPEC 10 lists --text-muted as #8A8D91, which measures
+ * 3.33:1 against white and fails the WCAG 2.1 AA target set in SPEC 65.
+ * --text-muted is therefore darkened to #71747A (4.68:1). The original value is
+ * preserved as --text-disabled for decorative, non-informational use only.
+ */
+
+:root {
+  /* ---- Surfaces (SPEC 10) ---- */
+  --background: #ffffff;
+  --surface: #ffffff;
+  --surface-secondary: #fafafa;
+  --surface-muted: #f5f5f5;
+  --surface-inset: #fbfbfc;
+  --surface-code: #fcfcfd;
+
+  /* ---- Text (SPEC 10) ---- */
+  --text-primary: #101010;
+  --text-secondary: #65676b;
+  --text-muted: #71747a;
+  --text-disabled: #8a8d91;
+  --text-on-accent: #ffffff;
+
+  /* ---- Borders (SPEC 10) ---- */
+  --border-default: #e4e6eb;
+  --border-subtle: #efefef;
+  --border-strong: #d6d9df;
+
+  /* ---- Brand accents (derived from the SPEC 10 gradient) ---- */
+  --accent: #c13584; /* 5.11:1 on white — safe for text and icons */
+  --accent-deep: #833ab4; /* 6.50:1 on white */
+  --accent-hot: #e1306c;
+  --accent-warm: #fcaf45;
+  --accent-soft: #fdf2f9;
+  --accent-soft-strong: #fae8f4;
+
+  /* ---- Gradients (SPEC 10) ---- */
+  --gradient-primary: linear-gradient(
+    135deg,
+    #833ab4 0%,
+    #c13584 25%,
+    #e1306c 50%,
+    #fd1d1d 72%,
+    #fcaf45 100%
+  );
+  --gradient-neon: linear-gradient(135deg, #7c3aed, #d946ef, #ff2d95, #ff6b35);
+  --gradient-ring: linear-gradient(135deg, #833ab4, #d946ef, #ff2d95, #ff7a00);
+
+  /* ---- Status ---- */
+  --success: #1a7f4b;
+  --success-soft: #eaf7f0;
+  --danger: #c0281f;
+  --danger-soft: #fdf0ef;
+  --warning: #8a5a00;
+  --warning-soft: #fdf6e7;
+
+  /* ---- Typography (SPEC 11) ---- */
+  --font-sans: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+
+  --text-page-title: 24px;
+  --text-section-title: 18px;
+  --text-label: 13px;
+  --text-body: 14px;
+  --text-helper: 12px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-label: 600;
+  --weight-section: 650;
+  --weight-bold: 700;
+
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.65;
+
+  /* ---- Spacing ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ---- Radii ---- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+
+  /* ---- Shadows (SPEC 74: discreet) ---- */
+  --shadow-xs: 0 1px 2px rgba(16, 16, 16, 0.04);
+  --shadow-sm: 0 1px 3px rgba(16, 16, 16, 0.06), 0 1px 2px rgba(16, 16, 16, 0.04);
+  --shadow-md: 0 4px 12px rgba(16, 16, 16, 0.07);
+  --shadow-lg: 0 12px 32px rgba(16, 16, 16, 0.1);
+  --shadow-glow: 0 0 20px rgba(217, 70, 239, 0.2), 0 0 40px rgba(255, 45, 149, 0.12);
+
+  /* ---- Layout (SPEC 12) ---- */
+  --header-height: 60px;
+  --sidebar-width: 260px;
+  --sidebar-rail: 64px;
+  --preview-width: 420px;
+  --preview-rail: 46px;
+  --content-max: 720px;
+
+  /* ---- Motion ---- */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-section: 260ms;
+  --duration-enter: 320ms;
+  --duration-panel: 300ms;
+  --duration-ring-spin: 7s;
+
+  /* Neon spectrum for the rotating story ring. */
+  --gradient-neon-ring: conic-gradient(
+    from 0deg,
+    #7c3aed,
+    #d946ef,
+    #ff2d95,
+    #ff6b35,
+    #fcaf45,
+    #22d3ee,
+    #7c3aed
+  );
+
+  /* ---- Z-index ---- */
+  --z-header: 40;
+  --z-drawer: 60;
+  --z-dialog: 80;
+  --z-toast: 100;
+}
+
+@media (max-width: 1439px) {
+  :root {
+    --sidebar-width: 220px;
+    --preview-width: 360px;
+  }
+}

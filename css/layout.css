@@ -1,0 +1,327 @@
+/*
+ * App shell and the three-column builder (SPEC 12, 64).
+ *
+ * One DOM tree serves every breakpoint: the preview becomes a tab below
+ * 1024px and the step trail turns into a horizontal strip below 768px.
+ */
+
+/*
+ * App-shell layout: the shell owns the viewport and the inner panels scroll.
+ * If the document itself scrolled, the sticky header would slide over the
+ * mobile tab strip as soon as anything moved the viewport.
+ * dvh keeps this honest while mobile browser chrome expands and collapses.
+ */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ------------------------------- header -------------------------------- */
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  height: var(--header-height);
+  padding: 0 var(--space-5);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  flex: none;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-primary);
+  text-decoration: none;
+  flex: none;
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand__name {
+  font-size: 15px;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  font-size: var(--text-label);
+  color: var(--text-secondary);
+  overflow: hidden;
+}
+
+.breadcrumb__sep {
+  display: inline-flex;
+  color: var(--text-disabled);
+}
+
+.breadcrumb__link {
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.breadcrumb__current {
+  color: var(--text-primary);
+  font-weight: var(--weight-label);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex: none;
+}
+
+.header__search {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 260px;
+  padding: 7px 10px;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--text-label);
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+.header__search:hover {
+  border-color: var(--border-default);
+}
+
+.header__search-label {
+  flex: 1;
+  text-align: left;
+}
+
+.header__kbd,
+.palette__kbd {
+  padding: 1px 5px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+}
+
+.header__privacy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px 5px 9px;
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  color: var(--text-secondary);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+}
+
+/* -------------------------------- pages -------------------------------- */
+
+.page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-10) var(--space-6) var(--space-16);
+}
+
+.page > * {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.page:focus {
+  outline: none;
+}
+
+/* ------------------------------- builder ------------------------------- */
+
+.builder-view {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/*
+ * Both side panels collapse independently. The column widths are custom
+ * properties so the grid can be driven by two data attributes instead of four
+ * hand-written combinations, and so the width change is a single smooth
+ * transition rather than a jump.
+ */
+.builder {
+  --col-sidebar: var(--sidebar-width);
+  --col-preview: var(--preview-width);
+
+  display: grid;
+  grid-template-columns: var(--col-sidebar) minmax(0, 1fr) var(--col-preview);
+  flex: 1;
+  min-height: 0;
+  transition: grid-template-columns var(--duration-panel) var(--ease-out);
+}
+
+.builder[data-sidebar='collapsed'] {
+  --col-sidebar: var(--sidebar-rail);
+}
+
+.builder[data-preview='collapsed'] {
+  --col-preview: var(--preview-rail);
+}
+
+.sidebar {
+  border-right: 1px solid var(--border-subtle);
+  padding: var(--space-6) var(--space-4);
+  overflow-y: auto;
+  /* The rail is narrower than the labels it hides; clipping horizontally keeps
+     a scrollbar from appearing while the panel animates shut. */
+  overflow-x: hidden;
+  transition: padding var(--duration-panel) var(--ease-out);
+}
+
+.builder[data-sidebar='collapsed'] .sidebar {
+  padding-inline: var(--space-2);
+}
+
+.builder__content {
+  min-width: 0;
+  overflow-y: auto;
+  padding: var(--space-8) var(--space-8) var(--space-16);
+}
+
+.builder__content:focus {
+  outline: none;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-left: 1px solid var(--border-subtle);
+  background: var(--surface-secondary);
+  overflow: hidden;
+}
+
+.mobile-tabs {
+  display: none;
+}
+
+/* ---------------------------- 1024 and below --------------------------- */
+
+@media (max-width: 1023px) {
+  .builder {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .mobile-tabs {
+    display: flex;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--surface);
+  }
+
+  .mobile-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    font-size: var(--text-label);
+    font-weight: var(--weight-label);
+    color: var(--text-secondary);
+  }
+
+  .mobile-tab[aria-selected='true'] {
+    color: var(--text-primary);
+    background: var(--surface-muted);
+  }
+
+  .builder[data-tab='builder'] .preview {
+    display: none;
+  }
+
+  .builder[data-tab='preview'] .sidebar,
+  .builder[data-tab='preview'] .builder__content {
+    display: none;
+  }
+
+  .builder[data-tab='preview'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .builder[data-tab='preview'] .preview {
+    border-left: none;
+  }
+
+  .header__search {
+    width: 44px;
+  }
+
+  .header__search-label,
+  .header__kbd {
+    display: none;
+  }
+}
+
+/* ----------------------------- 768 and below --------------------------- */
+
+@media (max-width: 767px) {
+  .header {
+    gap: var(--space-3);
+    padding: 0 var(--space-4);
+  }
+
+  .breadcrumb {
+    display: none;
+  }
+
+  .header__privacy-text {
+    display: none;
+  }
+
+  .builder {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  /* The step trail becomes a horizontally scrolling strip (SPEC 64). */
+  .builder[data-tab='builder'] .sidebar {
+    display: block;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: var(--space-3) var(--space-4);
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+
+  .builder__content {
+    padding: var(--space-6) var(--space-4) var(--space-12);
+  }
+
+  .page {
+    padding: var(--space-6) var(--space-4) var(--space-12);
+  }
+}
