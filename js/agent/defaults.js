@@ -187,6 +187,10 @@ export function duplicateAgent(agent) {
     id: uuid(),
     name: `${agent.name} — Cópia`,
     guardRails: agent.guardRails.map((rule) => ({ ...rule, id: uuid() })),
+    // Knowledge documents get fresh ids for the same reason the rules do: two
+    // agents that share an id have nothing keeping them apart the moment anything
+    // starts keying off it.
+    knowledge: agent.knowledge.map((doc) => ({ ...doc, id: uuid() })),
     createdAt: now,
     updatedAt: now,
   }
