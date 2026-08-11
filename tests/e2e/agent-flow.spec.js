@@ -191,12 +191,12 @@ test('duplicates and deletes an agent from the library (SPEC 95, 96)', async ({ 
 
   await page.goto('/#/studio')
   await page.getByRole('button', { name: /Duplicar: Base/ }).click()
-  await expect(page.getByRole('heading', { name: 'Base — Cópia' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Cópia de Base' })).toBeVisible()
 
-  await page.getByRole('button', { name: /Excluir: Base — Cópia/ }).click()
-  await expect(page.getByRole('heading', { name: /Excluir Base — Cópia\?/ })).toBeVisible()
+  await page.getByRole('button', { name: /Excluir: Cópia de Base/ }).click()
+  await expect(page.getByRole('heading', { name: /Excluir Cópia de Base\?/ })).toBeVisible()
   await page.locator('dialog.dialog').getByRole('button', { name: 'Excluir' }).click()
-  await expect(page.getByRole('heading', { name: 'Base — Cópia' })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'Cópia de Base' })).toHaveCount(0)
 })
 
 test('the command palette navigates to a step (SPEC 91)', async ({ page }) => {

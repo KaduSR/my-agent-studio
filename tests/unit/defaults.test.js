@@ -64,7 +64,7 @@ describe('duplicateAgent', () => {
     const copy = duplicateAgent(source)
 
     expect(copy.id).not.toBe(source.id)
-    expect(copy.name).toBe(`${source.name} — Cópia`)
+    expect(copy.name).toBe(`Cópia de ${source.name}`)
   })
 
   /**

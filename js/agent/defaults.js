@@ -185,7 +185,7 @@ export function duplicateAgent(agent) {
   return {
     ...structuredClone(agent),
     id: uuid(),
-    name: `${agent.name} — Cópia`,
+    name: `Cópia de ${agent.name}`,
     guardRails: agent.guardRails.map((rule) => ({ ...rule, id: uuid() })),
     // Knowledge documents get fresh ids for the same reason the rules do: two
     // agents that share an id have nothing keeping them apart the moment anything

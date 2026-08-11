@@ -99,7 +99,7 @@ export function appHeader(crumbs) {
     { class: 'header' },
     h(
       'a',
-      { class: 'brand', href: '#/', 'aria-label': 'My Agent Studio — início' },
+      { class: 'brand', href: '#/', 'aria-label': 'My Agent Studio, início' },
       brandMark(),
       h('span', { class: 'brand__name' }, 'My Agent Studio')
     ),

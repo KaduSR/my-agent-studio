@@ -15,12 +15,17 @@ test('every route loads with no console errors', async ({ page }) => {
 
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'My Agent Studio' })).toBeVisible()
+  await expect(page).toHaveTitle('Agent Studio')
 
   await page.goto('/#/studio')
   await expect(page.getByRole('heading', { name: 'Meus agentes' })).toBeVisible()
 
   await page.goto('/#/studio/new')
   await expect(page.getByRole('navigation', { name: /Etapas/ })).toBeVisible()
+
+  // The title used to be rebuilt per route, with an em dash joining the crumb to
+  // the product name. It is fixed now, so it must not drift as routes change.
+  await expect(page).toHaveTitle('Agent Studio')
 
   // Walk every step so each step module actually executes.
   for (const label of [
@@ -38,5 +43,6 @@ test('every route loads with no console errors', async ({ page }) => {
     await expect(stepButton).toHaveAttribute('aria-current', 'step')
   }
 
+  await expect(page).toHaveTitle('Agent Studio')
   expect(problems).toEqual([])
 })

@@ -172,8 +172,6 @@ function renderRoute(route) {
     isBuilder ? view.element : h('main', { class: 'page', id: 'main', tabindex: '-1' }, view.element)
   )
 
-  document.title =
-    route.name === 'home' ? 'My Agent Studio' : `${crumbs[crumbs.length - 1].label} — My Agent Studio`
 }
 
 function start() {

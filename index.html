@@ -3,7 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>My Agent Studio</title>
+    <!--
+      The tab title is fixed here and nowhere else. It used to be rebuilt per
+      route in main.js, which is why a stray em dash lived in the tab strip.
+    -->
+    <title>Agent Studio</title>
     <meta
       name="description"
       content="Crie agentes de IA como você cria personagens. Configure identidade, personalidade, regras e memória, e exporte tudo como Markdown."
@@ -12,13 +16,19 @@
     <meta name="theme-color" content="#ffffff" />
 
     <!--
-      Inline gradient orb. Keeping the favicon as a data URI avoids an extra
-      request and keeps the brand mark original — SPEC 14 and SPEC 74 forbid
-      borrowing any Instagram or Meta asset.
+      The puppet in profile, on a disc of the brand gradient. Drawn here rather
+      than shipped as a file: a data URI costs no request, and the mark is our
+      own, which SPEC 14 and SPEC 74 require.
+
+      Every decision in it is a 16px decision. It is a profile because the long
+      nose is the whole silhouette and a front view hides it. The hat is what
+      keeps the round head from reading as a bird. The dark outline behind the
+      head and the nose exists because the skin tone and the orange end of the
+      gradient are too close to separate on their own at that size.
     -->
     <link
       rel="icon"
-      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23833AB4'/%3E%3Cstop offset='.5' stop-color='%23E1306C'/%3E%3Cstop offset='1' stop-color='%23FCAF45'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='url(%23g)' stroke-width='5'/%3E%3C/svg%3E"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%23833AB4'/%3E%3Cstop offset='.5' stop-color='%23E1306C'/%3E%3Cstop offset='1' stop-color='%23FCAF45'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='16' cy='16' r='16' fill='url(%23g)'/%3E%3Cpath d='M18.6 15.7 L30.6 18.6 L18.6 21.5 Z' fill='%237A4A1E'/%3E%3Ccircle cx='13' cy='18.5' r='9.4' fill='%237A4A1E'/%3E%3Cpath d='M19 16.6 L29.2 18.6 L19 20.6 Z' fill='%23F3C9A2'/%3E%3Ccircle cx='13' cy='18.5' r='8.5' fill='%23F3C9A2'/%3E%3Cpath d='M6.5 9.5 Q13 3.5 19.5 9.5 Z' fill='%237A4A1E'/%3E%3Crect x='2.5' y='9' width='21' height='3' rx='1.5' fill='%237A4A1E'/%3E%3Ccircle cx='12' cy='16.5' r='2.1' fill='%231B1B1F'/%3E%3C/svg%3E"
     />
 
     <link rel="stylesheet" href="css/tokens.css" />
