@@ -104,11 +104,17 @@ export function soulStep() {
   /**
    * Mirrors the autofocus rule in textField: on a phone this would pop the
    * keyboard and scroll the step out of view.
+   *
+   * Synchronous on purpose. textField defers its own autofocus because the field
+   * is not in the document yet when it is built; here renderBody() has just
+   * attached it, and a deferred focus could land after the user had already
+   * clicked into another field and started typing.
+   *
    * @returns {void}
    */
   const focusFirstField = () => {
     if (!window.matchMedia('(min-width: 1024px)').matches) return
-    requestAnimationFrame(() => fields[0].input.focus({ preventScroll: true }))
+    fields[0].input.focus({ preventScroll: true })
   }
 
   const presets = h(

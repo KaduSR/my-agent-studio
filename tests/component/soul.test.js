@@ -110,6 +110,16 @@ describe('base souls', () => {
 })
 
 describe('typing into the fields', () => {
+  it('lands focus on the first field before anything else can happen', async () => {
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: 'Criar Soul' }))
+
+    // Synchronously, with no frame awaited. A deferred focus used to arrive
+    // after the user had clicked into another field, so the first keystrokes
+    // went to one field and the rest to another.
+    expect(document.activeElement).toBe(textareas()[0])
+  })
+
   it('writes each field to the store on its own', async () => {
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: 'Criar Soul' }))
