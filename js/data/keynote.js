@@ -12,6 +12,12 @@
  * question of what the model is; answering it before step 1 is what makes the
  * nine steps read as configuration rather than as magic.
  *
+ * That slide leans on the log that speaks before it is carved, which is in the
+ * original tale: it already talks with no face, no name and no shape, and nobody
+ * taught it. "Pre-trained" is exactly that, and the image says it without the
+ * word. The alternative, a head that already knew the words, put the language
+ * inside the puppet, which is where the user's own configuration goes.
+ *
  * Pure data. The presentation in ui/keynote.js decides how to render it.
  */
 
@@ -42,11 +48,11 @@ export const KEYNOTE = Object.freeze([
     id: 'brain',
     stage: 'brain',
     eyebrow: 'A matéria-prima',
-    title: 'O cérebro já vem pronto',
+    title: 'A madeira já falava',
     story:
-      'Gepeto entalhou o corpo, mas nunca ensinou o boneco a falar. A cabeça já veio sabendo as palavras, as histórias e o jeito de responder a quem chamava.',
+      'A lenha que Gepeto recebeu não era um pedaço de pau comum. Quando Mestre Cereja encostou o machado nela, ela reclamou em voz alta, ainda sem rosto, sem nome e sem nenhuma forma. Ninguém tinha ensinado nada a ela: a fala já vinha na madeira.',
     lesson:
-      'Esse é o LLM, o modelo de linguagem que serve de cérebro ao agente. Ele chega treinado, capaz de escrever e raciocinar sobre quase qualquer assunto. O que ele não tem é contexto próprio: não sabe quem é, para quem trabalha nem onde deve parar. As nove etapas a seguir existem para dar isso a ele.',
+      'Essa madeira é o LLM, o modelo de linguagem que serve de cérebro ao agente. Você não o ensina a falar, ele já chega assim: treinado em muito texto, capaz de escrever e raciocinar sobre quase qualquer assunto. E, como a lenha na bancada, ele não sabe quem é, para quem trabalha nem onde deve parar. Esculpir é o que falta, e é o que as nove etapas a seguir fazem.',
   },
   {
     id: 'identity',

@@ -622,8 +622,11 @@ test('the keynote runs end to end from both entry points', async ({ page }) => {
   // The model comes before step 1: the opening slide says what the user builds
   // is not the model, so the next one has to say what the model is.
   await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.keynote__title')).toHaveText('O cérebro já vem pronto')
+  await expect(page.locator('.keynote__title')).toHaveText('A madeira já falava')
   await expect(page.locator('.keynote__lesson')).toContainText('LLM')
+  // The point of the image: the log spoke before anyone carved it, which is what
+  // "pre-trained" means without using the word.
+  await expect(page.locator('.keynote__story')).toContainText('sem nome')
 
   // Walk to the end with the keyboard alone.
   for (let i = 0; i < SLIDES - 2; i += 1) await page.keyboard.press('ArrowRight')

@@ -34,7 +34,7 @@ export const GLOSSARY = Object.freeze([
     plain:
       'É o cérebro que já vem pronto: um programa treinado em muito texto que, diante de uma conversa, calcula qual é a próxima palavra mais provável.',
     story:
-      'A cabeça do Pinóquio já sabia falar antes de Gepeto ensinar qualquer coisa. Ele não sabia quem era nem para que servia, mas as palavras já estavam lá dentro.',
+      'A lenha que Gepeto recebeu já falava antes de virar boneco: reclamou quando o machado encostou nela, ainda sem rosto e sem nome. As palavras já estavam na madeira, e ninguém as ensinou.',
     example:
       'Se você escreve "era uma vez uma", o cérebro completa "menina", "casa", "raposa". Ele não consultou nada em lugar nenhum: só sabe o que costuma vir depois.',
   },
