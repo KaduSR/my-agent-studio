@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   createAgentFromTemplate,
   createEmptyAgent,
@@ -65,7 +65,31 @@ describe('duplicateAgent', () => {
 
     expect(copy.id).not.toBe(source.id)
     expect(copy.name).toBe(`${source.name} — Cópia`)
-    expect(copy.createdAt).not.toBe(source.createdAt)
+  })
+
+  /**
+   * The clock is frozen rather than compared against itself: both stamps come
+   * from `new Date()` at millisecond resolution, so on a fast machine the copy
+   * and the original land in the same millisecond and an inequality assertion
+   * fails for no reason. uuid() reads from crypto, not the clock, so ids are
+   * still unique under a fixed time.
+   */
+  it('stamps the copy with its own moment', () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date('2026-01-01T10:00:00.000Z'))
+      const source = original()
+
+      vi.setSystemTime(new Date('2026-01-02T11:30:00.000Z'))
+      const copy = duplicateAgent(source)
+
+      expect(source.createdAt).toBe('2026-01-01T10:00:00.000Z')
+      expect(copy.createdAt).toBe('2026-01-02T11:30:00.000Z')
+      expect(copy.updatedAt).toBe(copy.createdAt)
+      expect(copy.id).not.toBe(source.id)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('carries everything the original had', () => {
