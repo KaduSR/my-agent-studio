@@ -15,8 +15,8 @@ import { traitLabels } from '../data/traits.js'
 import { responseStyleLabel } from '../data/response-styles.js'
 import { soulValueLabels } from '../data/soul-values.js'
 import { getMemoryType, memoryOptionLabel } from '../data/memory.js'
-import { BEHAVIOR_SLIDERS, sliderBand } from '../data/behavior-sliders.js'
-import { getToolDefinition } from '../data/tools.js'
+import { BEHAVIOR_SLIDERS, bandFor } from '../data/behavior-sliders.js'
+import { getToolDefinition, getToolPermission } from '../data/tools.js'
 
 /**
  * Join non-empty blocks with a blank line between them.
@@ -72,6 +72,94 @@ export function enabledTools(agent) {
   return agent.tools.filter((tool) => tool.enabled)
 }
 
+/**
+ * Knowledge documents in their user-defined order.
+ * @param {import('./types.js').Agent} agent
+ * @returns {import('./types.js').AgentKnowledge[]}
+ */
+export function orderedKnowledge(agent) {
+  return [...agent.knowledge]
+    .sort((a, b) => a.order - b.order)
+    .filter((doc) => doc.title.trim().length > 0 && doc.content.trim().length > 0)
+}
+
+/**
+ * Push every heading in a document down by `by` levels.
+ *
+ * Knowledge documents are the only content in the agent that arrives as Markdown
+ * rather than as plain text, so they bring their own headings. Pasted in as-is, a
+ * document's `#` would outrank the section holding it and the exported file would
+ * read as a flat pile. Fenced blocks are left alone: a `#` in there is a comment.
+ *
+ * @param {string} markdown
+ * @param {number} by
+ * @returns {string}
+ */
+export function shiftHeadings(markdown, by) {
+  if (by <= 0) return markdown
+
+  return mapHeadings(markdown, (hashes, spacing, text) => {
+    // Markdown has no h7: past six, the heading simply stops going deeper.
+    return `${'#'.repeat(Math.min(6, hashes.length + by))}${spacing}${text}`
+  })
+}
+
+/**
+ * Walk a document's headings, leaving fenced blocks alone.
+ * @param {string} markdown
+ * @param {(hashes: string, spacing: string, text: string) => string} visit
+ * @returns {string}
+ */
+function mapHeadings(markdown, visit) {
+  let inFence = false
+
+  return markdown
+    .split('\n')
+    .map((line) => {
+      if (/^\s{0,3}(```|~~~)/.test(line)) {
+        inFence = !inFence
+        return line
+      }
+      if (inFence) return line
+
+      const match = /^(#{1,6})(\s+)(.*)$/.exec(line)
+      return match ? visit(match[1], match[2], match[3]) : line
+    })
+    .join('\n')
+}
+
+/**
+ * The shallowest heading a document uses, or null when it has none.
+ * @param {string} markdown
+ * @returns {number | null}
+ */
+function topHeadingLevel(markdown) {
+  /** @type {number | null} */
+  let top = null
+  mapHeadings(markdown, (hashes, spacing, text) => {
+    top = top === null ? hashes.length : Math.min(top, hashes.length)
+    return `${hashes}${spacing}${text}`
+  })
+  return top
+}
+
+/**
+ * Drop a document's own title line when the section already emits it.
+ *
+ * Only when the two match, so a document whose first heading says something else
+ * keeps it.
+ *
+ * @param {string} content
+ * @param {string} title
+ * @returns {string}
+ */
+function withoutRedundantTitle(content, title) {
+  const match = /^\s*#\s+(.*)(?:\r?\n|$)/.exec(content)
+  if (!match) return content
+  if (match[1].trim().toLowerCase() !== title.trim().toLowerCase()) return content
+  return content.slice(match[0].length).replace(/^\s*\n/, '')
+}
+
 /* ------------------------------------------------------------------ *
  * Section builders — shared by AGENT.md and by the per-topic files.   *
  * ------------------------------------------------------------------ */
@@ -103,7 +191,7 @@ export function personalitySection(agent, level = 2) {
 
   const behaviour = BEHAVIOR_SLIDERS.map((slider) => {
     const value = agent.personality[slider.id]
-    return `${slider.label}: ${value}/100 — ${sliderBand(value, slider.lowLabel, slider.highLabel)}`
+    return `${slider.label}: ${value}/100 — ${bandFor(slider, value)}`
   })
 
   const body = joinBlocks(
@@ -138,16 +226,69 @@ export function toolsSection(agent, level = 2) {
   if (tools.length === 0) return ''
 
   const lines = tools.map((tool) => {
-    const purpose = tool.purpose?.trim() || getToolDefinition(tool.id)?.defaultPurpose || ''
+    const definition = getToolDefinition(tool.id)
+    const purpose = tool.purpose?.trim() || definition?.defaultPurpose || ''
     const head = purpose ? `**${tool.name}** — ${purpose}` : `**${tool.name}**`
-    const nested = (tool.rules ?? [])
-      .map((rule) => rule.trim())
-      .filter(Boolean)
-      .map((rule) => `  - ${rule}`)
+
+    // Permission comes first among the nested lines: "has a terminal" and "may
+    // run commands without asking" are different statements, and whoever runs
+    // this agent needs the second one before the usage notes.
+    const permission = getToolPermission(tool.permission ?? definition?.defaultPermission)
+    const nested = [
+      `  - Permissão: ${permission.markdownLabel}`,
+      ...(tool.rules ?? [])
+        .map((rule) => rule.trim())
+        .filter(Boolean)
+        .map((rule) => `  - ${rule}`),
+    ]
     return [`- ${head}`, ...nested].join('\n')
   })
 
   return joinBlocks(heading(level, 'Tools'), lines.join('\n'))
+}
+
+/**
+ * One knowledge document, as its own titled block.
+ *
+ * The single place that decides how a document renders, so the section below and
+ * the standalone `references/*.md` files cannot drift apart.
+ *
+ * @param {import('./types.js').AgentKnowledge} doc
+ * @param {number} [level] Heading level for the document's title.
+ * @returns {string}
+ */
+export function knowledgeDocument(doc, level = 3) {
+  const title = doc.title.trim()
+  const body = withoutRedundantTitle(doc.content.trim(), title).trim()
+
+  // The shift is measured from what the document actually uses, not assumed. A
+  // document that opened with its own H1 has had it removed by now and starts at
+  // H2, and shifting by a fixed amount would jump a heading level.
+  const top = topHeadingLevel(body)
+  const shift = top === null ? 0 : Math.max(0, level + 1 - top)
+
+  return joinBlocks(heading(level, title), shiftHeadings(body, shift))
+}
+
+/**
+ * Reference material the agent carries into every conversation.
+ *
+ * Each document keeps its own Markdown, re-levelled to sit under its title, so
+ * whoever runs the agent can quote a specific section of a specific document
+ * rather than the whole blob.
+ *
+ * @param {import('./types.js').Agent} agent
+ * @param {number} [level]
+ * @returns {string}
+ */
+export function knowledgeSection(agent, level = 2) {
+  const docs = orderedKnowledge(agent)
+  if (docs.length === 0) return ''
+
+  return joinBlocks(
+    heading(level, 'Knowledge'),
+    ...docs.map((doc) => knowledgeDocument(doc, level + 1))
+  )
 }
 
 /**
@@ -207,6 +348,7 @@ export function generateAgentMarkdown(agent) {
     personalitySection(agent),
     rulesSection(agent),
     toolsSection(agent),
+    knowledgeSection(agent),
     memorySection(agent)
   )}\n`
 }

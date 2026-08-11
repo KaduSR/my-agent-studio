@@ -7,16 +7,51 @@
  * appears to transform in place rather than cross-fade: the head that was small
  * and off to one side flies and grows into the next composition.
  *
- * Purely illustrative — the narration lives in the slide text, so the whole
+ * Every stage also breathes on its own. The idle loop is deliberately
+ * Scribblenauts-like: nothing translates in a straight line, everything squashes
+ * and stretches around a planted origin, and each limb runs on its own period so
+ * the figure never falls into a single mechanical beat. That is why the parts
+ * are wrapped in <g> elements here rather than drawn flat — a group is the only
+ * thing an SVG transform can be anchored to.
+ *
+ * Purely illustrative, so the narration lives in the slide text and the whole
  * thing is aria-hidden.
  */
 
 import { s } from '../lib/dom.js'
+import { prefersReducedMotion } from './flip.js'
 
 /**
- * Stages, in narrative order.
- * @typedef {'wood' | 'named' | 'purpose' | 'soul' | 'personality' | 'guardrails'
- *   | 'tools' | 'memory' | 'export' | 'boy'} PuppetStage
+ * Every figure the puppet can be, in narrative order.
+ *
+ * Exported as data, not only as a type, because two separate content files
+ * (data/keynote.js and data/glossary.js) name these by string. A typo there
+ * would draw the fallback figure silently; the tests compare against this list
+ * so it fails loudly instead.
+ *
+ * @type {ReadonlyArray<PuppetStage>}
+ */
+export const PUPPET_STAGES = Object.freeze([
+  'wood',
+  'brain',
+  'tokens',
+  'named',
+  'purpose',
+  'soul',
+  'personality',
+  'guardrails',
+  'harness',
+  'tools',
+  'knowledge',
+  'memory',
+  'export',
+  'boy',
+])
+
+/**
+ * @typedef {'wood' | 'brain' | 'tokens' | 'named' | 'purpose' | 'soul'
+ *   | 'personality' | 'guardrails' | 'harness' | 'tools' | 'knowledge'
+ *   | 'memory' | 'export' | 'boy'} PuppetStage
  */
 
 const WOOD_DARK = '#8A5524'
@@ -24,12 +59,24 @@ const WOOD = '#C08447'
 const WOOD_LIGHT = '#E0AE79'
 const SKIN = '#F3C9A2'
 const SKIN_DARK = '#D89F73'
+const SPARK = '#4C6FE8'
 
 /** Stages where the figure is flesh rather than timber. */
 const REAL_BOY = new Set(['export', 'boy'])
 
+/** Stages drawn before Gepeto put a hat on him. */
+const BARE_HEAD = new Set(['wood', 'brain'])
+
 /** Stages where the marionette is still on strings. */
-const ON_STRINGS = new Set(['wood', 'named', 'purpose'])
+const ON_STRINGS = new Set(['wood', 'brain', 'tokens', 'named', 'purpose', 'harness'])
+
+/**
+ * Every idle animation started for a figure, so the keynote can cancel them all
+ * when the slide it belongs to is swapped out. Without this, each discarded
+ * figure would keep an infinite animation alive for the life of the dialog.
+ * @type {WeakMap<Element, Animation[]>}
+ */
+const running = new WeakMap()
 
 /**
  * The nose length per stage. Growing it on the Guard Rails slide is the whole
@@ -54,6 +101,67 @@ function palette(stage) {
 }
 
 /**
+ * A group that exists to be transformed.
+ *
+ * `transform-box: view-box` is what makes the origin below read in viewBox
+ * units instead of the group's own bounding box, so an arm can pivot at the
+ * shoulder even though the shoulder is not the centre of the arm.
+ *
+ * @param {string} origin `transform-origin`, in viewBox units.
+ * @param {(SVGElement | null)[]} children
+ * @returns {SVGGElement}
+ */
+function pivot(origin, children) {
+  return s(
+    'g',
+    { style: { transformBox: 'view-box', transformOrigin: origin } },
+    children.filter(Boolean)
+  )
+}
+
+/**
+ * @typedef {Object} IdleOptions
+ * @property {number} duration Milliseconds for one half-cycle.
+ * @property {number} [delay] Negative values start the loop mid-flight.
+ */
+
+/**
+ * Register one looping animation, alternating between two poses.
+ * @param {Element} host The figure the animation belongs to.
+ * @param {Element | null} target
+ * @param {Keyframe[]} keyframes
+ * @param {IdleOptions} options
+ * @returns {void}
+ */
+function idle(host, target, keyframes, options) {
+  if (!target || typeof target.animate !== 'function') return
+
+  const animation = target.animate(keyframes, {
+    duration: options.duration,
+    delay: options.delay ?? 0,
+    iterations: Infinity,
+    direction: 'alternate',
+    easing: 'ease-in-out',
+  })
+
+  const list = running.get(host)
+  if (list) list.push(animation)
+  else running.set(host, [animation])
+}
+
+/**
+ * Cancel a figure's idle loops. Safe to call on an element that has none.
+ * @param {Element} el
+ * @returns {void}
+ */
+export function stopPuppet(el) {
+  const list = running.get(el)
+  if (!list) return
+  for (const animation of list) animation.cancel()
+  running.delete(el)
+}
+
+/**
  * @param {PuppetStage} stage
  * @param {number} size
  * @returns {SVGSVGElement}
@@ -63,100 +171,283 @@ export function puppet(stage, size = 320) {
   const nose = noseLength(stage)
   const gradientId = `puppet-glow-${stage}`
 
-  /** @type {(SVGElement | null)[]} */
-  const parts = []
+  /* ---------------------------- the drawing ---------------------------- */
 
-  // ---- strings ---------------------------------------------------------
-  if (ON_STRINGS.has(stage)) {
-    for (const x of [78, 122]) {
-      parts.push(
-        s('line', {
-          x1: x,
-          y1: 0,
-          x2: x,
-          y2: 62,
-          stroke: '#C9CDD4',
-          'stroke-width': 1.5,
-          'stroke-dasharray': '3 4',
+  const strings = ON_STRINGS.has(stage)
+    ? pivot('100px 0', [
+        // The control cross, drawn only where the point is the rig itself.
+        stage === 'harness'
+          ? s('rect', { x: 58, y: 10, width: 84, height: 7, rx: 3.5, fill: WOOD_DARK })
+          : null,
+        stage === 'harness'
+          ? s('rect', { x: 96.5, y: 0, width: 7, height: 30, rx: 3.5, fill: WOOD })
+          : null,
+        ...[78, 122].map((x) =>
+          s('line', {
+            x1: x,
+            y1: stage === 'harness' ? 16 : 0,
+            x2: x,
+            y2: 62,
+            stroke: '#C9CDD4',
+            'stroke-width': 1.5,
+            'stroke-dasharray': '3 4',
+          })
+        ),
+      ])
+    : REAL_BOY.has(stage)
+      ? // Cut strings, drawn slack, to show he is on his own now.
+        pivot('100px 26px', [
+          s('path', {
+            d: 'M62 26 q6 10 0 20 M138 26 q-6 10 0 20',
+            stroke: '#D8DCE3',
+            'stroke-width': 1.5,
+            fill: 'none',
+          }),
+        ])
+      : null
+
+  const noseGroup = pivot('100px 106px', [
+    // A wedge pointing right, its length driven by the stage.
+    s('path', { d: `M100 100 L${100 + nose} 106 L100 112 Z`, fill: colors.shade }),
+  ])
+
+  const head = pivot('100px 126px', [
+    !BARE_HEAD.has(stage)
+      ? s('path', {
+          d: 'M70 66 Q100 34 130 66 Z',
+          fill: stage === 'personality' ? '#E1306C' : colors.shade,
         })
-      )
-    }
-  }
+      : null,
+    !BARE_HEAD.has(stage) ? s('ellipse', { cx: 100, cy: 67, rx: 34, ry: 5, fill: colors.shade }) : null,
 
-  // ---- hat -------------------------------------------------------------
-  if (stage !== 'wood') {
-    parts.push(
-      s('path', {
-        d: 'M70 66 Q100 34 130 66 Z',
-        fill: stage === 'personality' ? '#E1306C' : colors.shade,
-      }),
-      s('ellipse', { cx: 100, cy: 67, rx: 34, ry: 5, fill: colors.shade })
-    )
-  }
-
-  // ---- head ------------------------------------------------------------
-  parts.push(
     stage === 'wood'
       ? // Before anything is carved it is a plain block of timber.
         s('rect', { x: 74, y: 68, width: 52, height: 56, rx: 4, fill: colors.body })
-      : s('rect', { x: 74, y: 68, width: 52, height: 58, rx: 18, fill: colors.body })
-  )
+      : s('rect', { x: 74, y: 68, width: 52, height: 58, rx: 18, fill: colors.body }),
 
-  // Grain, only while it is still wood.
-  if (!REAL_BOY.has(stage)) {
-    parts.push(
-      s('path', {
-        d: 'M82 84 Q100 90 118 84 M82 100 Q100 106 118 100',
-        stroke: colors.light,
-        'stroke-width': 1.5,
-        fill: 'none',
-        opacity: 0.7,
-      })
-    )
-  }
+    // Grain, only while it is still plain wood.
+    !REAL_BOY.has(stage) && stage !== 'brain'
+      ? s('path', {
+          d: 'M82 84 Q100 90 118 84 M82 100 Q100 106 118 100',
+          stroke: colors.light,
+          'stroke-width': 1.5,
+          fill: 'none',
+          opacity: 0.7,
+        })
+      : null,
 
-  // ---- face ------------------------------------------------------------
-  if (stage !== 'wood') {
-    const eyeY = 96
-    parts.push(
-      s('circle', { cx: 89, cy: eyeY, r: 4, fill: '#1B1B1F' }),
-      s('circle', { cx: 111, cy: eyeY, r: 4, fill: '#1B1B1F' })
-    )
+    stage !== 'wood' ? s('circle', { cx: 89, cy: 96, r: 4, fill: '#1B1B1F' }) : null,
+    stage !== 'wood' ? s('circle', { cx: 111, cy: 96, r: 4, fill: '#1B1B1F' }) : null,
 
     // Raised brows on the personality slide read as "curious".
-    if (stage === 'personality') {
-      parts.push(
-        s('path', {
+    stage === 'personality'
+      ? s('path', {
           d: 'M84 86 Q89 82 94 86 M106 86 Q111 82 116 86',
           stroke: '#1B1B1F',
           'stroke-width': 2,
           fill: 'none',
           'stroke-linecap': 'round',
         })
-      )
-    }
+      : null,
 
-    // Nose: a wedge pointing right, its length driven by the stage.
-    parts.push(
-      s('path', {
-        d: `M100 100 L${100 + nose} 106 L100 112 Z`,
-        fill: colors.shade,
-      })
-    )
+    stage !== 'wood' ? noseGroup : null,
 
-    parts.push(
-      s('path', {
-        d: stage === 'guardrails' ? 'M90 118 Q100 114 110 118' : 'M90 116 Q100 122 110 116',
-        stroke: '#1B1B1F',
-        'stroke-width': 2,
-        fill: 'none',
-        'stroke-linecap': 'round',
-      })
-    )
-  }
+    stage !== 'wood'
+      ? s('path', {
+          d: stage === 'guardrails' ? 'M90 118 Q100 114 110 118' : 'M90 116 Q100 122 110 116',
+          stroke: '#1B1B1F',
+          'stroke-width': 2,
+          fill: 'none',
+          'stroke-linecap': 'round',
+        })
+      : null,
+  ])
 
-  // ---- body ------------------------------------------------------------
-  parts.push(
+  // The model, drawn as a lit network inside the head: it is already there
+  // before any of the nine steps touch it.
+  const brain =
+    stage === 'brain'
+      ? pivot('100px 82px', [
+          // The links are drawn unblurred: at this size the glow filter turns
+          // thin strokes into a smudge, and the network has to stay legible.
+          s('path', {
+            d: 'M84 80 L100 72 L116 80 M84 80 L92 90 L108 90 L116 80 M92 90 L100 72 L108 90',
+            stroke: SPARK,
+            'stroke-width': 1.6,
+            fill: 'none',
+            opacity: 0.8,
+          }),
+          ...[
+            [100, 72],
+            [84, 80],
+            [116, 80],
+            [92, 90],
+            [108, 90],
+          ].map(([cx, cy]) =>
+            s('circle', { cx, cy, r: 3, fill: SPARK, filter: `url(#${gradientId})` })
+          ),
+        ])
+      : null
+
+  // Speech, cut into pieces: what leaves the mouth is never a whole sentence.
+  const tokenColors = ['#E1306C', '#FCAF45', '#7C3AED', '#2FA36B']
+  const tokens =
+    stage === 'tokens'
+      ? tokenColors.map((fill, index) =>
+          s('rect', {
+            x: 132 + index * 17,
+            y: index % 2 === 0 ? 110 : 102,
+            width: 14,
+            height: 10,
+            rx: 3,
+            fill,
+            style: { transformBox: 'view-box', transformOrigin: `${139 + index * 17}px 110px` },
+          })
+        )
+      : []
+
+  const armLeft = pivot('78px 142px', [
+    s('path', {
+      d: 'M78 142 L56 162',
+      stroke: colors.shade,
+      'stroke-width': 9,
+      'stroke-linecap': 'round',
+      fill: 'none',
+    }),
+  ])
+
+  const lantern =
+    stage === 'tools'
+      ? // A lantern in hand: what he needs to get out of the whale.
+        pivot('144px 162px', [
+          s('line', { x1: 144, y1: 162, x2: 144, y2: 176, stroke: colors.shade, 'stroke-width': 2 }),
+          s('rect', { x: 133, y: 176, width: 22, height: 22, rx: 4, fill: '#FCAF45' }),
+          s('rect', { x: 138, y: 181, width: 12, height: 12, rx: 2, fill: '#FFF3D6' }),
+        ])
+      : null
+
+  const armRight = pivot('122px 142px', [
+    s('path', {
+      d: 'M122 142 L144 162',
+      stroke: colors.shade,
+      'stroke-width': 9,
+      'stroke-linecap': 'round',
+      fill: 'none',
+    }),
+    lantern,
+  ])
+
+  const legs = pivot('100px 184px', [
+    s('path', {
+      d: 'M88 184 L84 218 M112 184 L116 218',
+      stroke: colors.shade,
+      'stroke-width': 9,
+      'stroke-linecap': 'round',
+      fill: 'none',
+    }),
+  ])
+
+  const heart =
+    stage === 'soul'
+      ? pivot('100px 152px', [
+          s('path', {
+            d: 'M100 168 c-9 -9 -18 -16 -18 -25 a9 9 0 0 1 18 -5 a9 9 0 0 1 18 5 c0 9 -9 16 -18 25 Z',
+            fill: '#E1306C',
+            filter: `url(#${gradientId})`,
+          }),
+        ])
+      : null
+
+  const cricket =
+    stage === 'guardrails'
+      ? // Jiminy on the shoulder: the conscience that speaks up.
+        pivot('138px 132px', [
+          s('circle', { cx: 138, cy: 132, r: 9, fill: '#2FA36B' }),
+          s('circle', { cx: 135, cy: 130, r: 2, fill: '#0F2E1E' }),
+          s('path', {
+            d: 'M144 126 l8 -7 M144 132 l9 -1',
+            stroke: '#2FA36B',
+            'stroke-width': 2,
+            'stroke-linecap': 'round',
+          }),
+        ])
+      : null
+
+  const book =
+    stage === 'memory'
+      ? // A book of everything the adventures taught him.
+        pivot('57px 170px', [
+          s('rect', { x: 42, y: 158, width: 30, height: 24, rx: 3, fill: '#7C3AED' }),
+          s('path', {
+            d: 'M57 158 v24 M46 165 h8 M60 165 h8',
+            stroke: '#E6DCFF',
+            'stroke-width': 1.5,
+          }),
+        ])
+      : null
+
+  /*
+   * The schoolbook Geppetto sold his coat to buy, held open in both hands. It has
+   * to read as a different object from the memory book above — that one is closed,
+   * purple and on his hip; this one is open, pale and out in front, because the
+   * point is that it is being consulted rather than carried.
+   */
+  const rightPage =
+    stage === 'knowledge'
+      ? s('path', {
+          d: 'M100 150 L138 155 L138 175 L100 171 Z',
+          fill: '#FBFAF5',
+          stroke: '#C9CDD4',
+          'stroke-width': 1.2,
+          style: { transformBox: 'view-box', transformOrigin: '100px 161px' },
+        })
+      : null
+
+  // Held at the hands, which sit at y=162 — low enough to read as held, high
+  // enough not to cover the legs.
+  const openBook =
+    stage === 'knowledge'
+      ? pivot('100px 161px', [
+          s('path', {
+            d: 'M100 150 L62 155 L62 175 L100 171 Z',
+            fill: '#FBFAF5',
+            stroke: '#C9CDD4',
+            'stroke-width': 1.2,
+          }),
+          rightPage,
+          // Lines of text, short enough to read as writing rather than as rules.
+          s('path', {
+            d: 'M69 161 h24 M69 167 h18 M107 162 h24 M107 168 h18',
+            stroke: '#C9CDD4',
+            'stroke-width': 1.4,
+            'stroke-linecap': 'round',
+          }),
+          s('path', {
+            d: 'M100 150 v21',
+            stroke: SPARK,
+            'stroke-width': 2.4,
+            'stroke-linecap': 'round',
+          }),
+        ])
+      : null
+
+  const star =
+    stage === 'purpose'
+      ? // Geppetto's wish upon a star.
+        pivot('157px 56px', [
+          s('path', {
+            d: 'M150 44 l5 11 12 2 -9 9 2 12 -10 -6 -10 6 2 -12 -9 -9 12 -2 Z',
+            fill: '#FCAF45',
+          }),
+        ])
+      : null
+
+  // Planted at the feet, so the whole body squashes downward instead of
+  // shrinking toward its middle.
+  const figure = pivot('100px 220px', [
+    legs,
+    armLeft,
+    armRight,
     s('rect', {
       x: 78,
       y: 130,
@@ -164,96 +455,17 @@ export function puppet(stage, size = 320) {
       height: 54,
       rx: REAL_BOY.has(stage) ? 14 : 6,
       fill: colors.body,
-    })
-  )
-
-  // ---- limbs -----------------------------------------------------------
-  parts.push(
-    s('path', {
-      d: 'M78 142 L56 162 M122 142 L144 162',
-      stroke: colors.shade,
-      'stroke-width': 9,
-      'stroke-linecap': 'round',
-      fill: 'none',
     }),
-    s('path', {
-      d: 'M88 184 L84 218 M112 184 L116 218',
-      stroke: colors.shade,
-      'stroke-width': 9,
-      'stroke-linecap': 'round',
-      fill: 'none',
-    })
-  )
+    heart,
+    head,
+    brain,
+    ...tokens,
+    cricket,
+    book,
+    openBook,
+  ])
 
-  // ---- per-stage accents ----------------------------------------------
-  if (stage === 'purpose') {
-    // Geppetto's wish upon a star.
-    parts.push(
-      s('path', {
-        d: 'M150 44 l5 11 12 2 -9 9 2 12 -10 -6 -10 6 2 -12 -9 -9 12 -2 Z',
-        fill: '#FCAF45',
-      })
-    )
-  }
-
-  if (stage === 'soul') {
-    parts.push(
-      s('path', {
-        d: 'M100 168 c-9 -9 -18 -16 -18 -25 a9 9 0 0 1 18 -5 a9 9 0 0 1 18 5 c0 9 -9 16 -18 25 Z',
-        fill: '#E1306C',
-        filter: `url(#${gradientId})`,
-      })
-    )
-  }
-
-  if (stage === 'guardrails') {
-    // Jiminy on the shoulder: the conscience that speaks up.
-    parts.push(
-      s('circle', { cx: 138, cy: 132, r: 9, fill: '#2FA36B' }),
-      s('circle', { cx: 135, cy: 130, r: 2, fill: '#0F2E1E' }),
-      s('path', {
-        d: 'M144 126 l8 -7 M144 132 l9 -1',
-        stroke: '#2FA36B',
-        'stroke-width': 2,
-        'stroke-linecap': 'round',
-      })
-    )
-  }
-
-  if (stage === 'tools') {
-    // A lantern in hand — what he needs to get out of the whale.
-    parts.push(
-      s('line', { x1: 144, y1: 162, x2: 144, y2: 176, stroke: colors.shade, 'stroke-width': 2 }),
-      s('rect', { x: 133, y: 176, width: 22, height: 22, rx: 4, fill: '#FCAF45' }),
-      s('rect', { x: 138, y: 181, width: 12, height: 12, rx: 2, fill: '#FFF3D6' })
-    )
-  }
-
-  if (stage === 'memory') {
-    // A book of everything the adventures taught him.
-    parts.push(
-      s('rect', { x: 42, y: 158, width: 30, height: 24, rx: 3, fill: '#7C3AED' }),
-      s('path', {
-        d: 'M57 158 v24 M46 165 h8 M60 165 h8',
-        stroke: '#E6DCFF',
-        'stroke-width': 1.5,
-      })
-    )
-  }
-
-  if (REAL_BOY.has(stage)) {
-    // Cut strings, drawn slack, to show he is on his own now.
-    parts.push(
-      s('path', {
-        d: 'M62 26 q6 10 0 20 M138 26 q-6 10 0 20',
-        stroke: '#D8DCE3',
-        'stroke-width': 1.5,
-        fill: 'none',
-      })
-    )
-  }
-
-  return s(
+  const svg = s(
     'svg',
     {
       class: 'puppet',
@@ -278,6 +490,140 @@ export function puppet(stage, size = 320) {
         )
       )
     ),
-    ...parts.filter(Boolean)
+    strings,
+    figure,
+    star
   )
+
+  /* ----------------------------- the motion ---------------------------- */
+
+  // The CSS prefers-reduced-motion rule cannot reach element.animate(), so the
+  // preference has to be honoured here or the figure would keep bouncing for
+  // someone who asked the system for stillness.
+  if (prefersReducedMotion()) return svg
+
+  // A real boy has more spring in him than a block of timber.
+  const alive = REAL_BOY.has(stage)
+
+  idle(
+    svg,
+    figure,
+    [
+      { transform: 'translateY(0px) scale(1.025, 0.975)' },
+      { transform: `translateY(${alive ? -9 : -6}px) scale(0.985, 1.02)` },
+    ],
+    { duration: alive ? 620 : 780 }
+  )
+
+  idle(svg, head, [{ transform: 'rotate(-3deg)' }, { transform: 'rotate(3.5deg)' }], {
+    duration: 1300,
+    delay: -420,
+  })
+
+  idle(svg, armLeft, [{ transform: 'rotate(-10deg)' }, { transform: 'rotate(7deg)' }], {
+    duration: 1120,
+  })
+
+  idle(svg, armRight, [{ transform: 'rotate(9deg)' }, { transform: 'rotate(-6deg)' }], {
+    duration: 1240,
+    delay: -300,
+  })
+
+  idle(svg, legs, [{ transform: 'rotate(-1.8deg)' }, { transform: 'rotate(1.8deg)' }], {
+    duration: 1660,
+    delay: -600,
+  })
+
+  idle(svg, strings, [{ transform: 'rotate(-1.2deg)' }, { transform: 'rotate(1.2deg)' }], {
+    duration: 2100,
+  })
+
+  idle(
+    svg,
+    brain,
+    [
+      { transform: 'scale(0.94)', opacity: 0.55 },
+      { transform: 'scale(1.07)', opacity: 1 },
+    ],
+    { duration: 900 }
+  )
+
+  idle(svg, heart, [{ transform: 'scale(0.92)' }, { transform: 'scale(1.16)' }], { duration: 560 })
+
+  // Each piece leaves on its own beat, so the row reads as a stream rather than
+  // as four blocks blinking together.
+  tokens.forEach((token, index) => {
+    idle(
+      svg,
+      token,
+      [
+        { transform: 'translateX(-7px) scale(0.8)', opacity: 0.25 },
+        { transform: 'translateX(4px) scale(1)', opacity: 1 },
+      ],
+      { duration: 700, delay: -index * 175 }
+    )
+  })
+
+  idle(
+    svg,
+    cricket,
+    [
+      { transform: 'translateY(0px) scale(1, 1)' },
+      { transform: 'translateY(-8px) scale(0.94, 1.06)' },
+    ],
+    { duration: 460 }
+  )
+
+  idle(svg, lantern, [{ transform: 'rotate(-8deg)' }, { transform: 'rotate(9deg)' }], {
+    duration: 940,
+    delay: -200,
+  })
+
+  idle(
+    svg,
+    book,
+    [
+      { transform: 'translateY(3px) rotate(-4deg)' },
+      { transform: 'translateY(-4px) rotate(5deg)' },
+    ],
+    { duration: 1500 }
+  )
+
+  idle(
+    svg,
+    star,
+    [
+      { transform: 'scale(0.82) rotate(-12deg)' },
+      { transform: 'scale(1.14) rotate(14deg)' },
+    ],
+    { duration: 820 }
+  )
+
+  idle(
+    svg,
+    openBook,
+    [
+      { transform: 'rotate(-2.5deg) translateY(1px)' },
+      { transform: 'rotate(2.5deg) translateY(-2px)' },
+    ],
+    { duration: 1400 }
+  )
+
+  // One page lifting and settling: he is reading it, not holding it for a photo.
+  idle(svg, rightPage, [{ transform: 'scaleX(1)' }, { transform: 'scaleX(0.72)' }], {
+    duration: 1150,
+    delay: -400,
+  })
+
+  // The lie itself: the nose shoots out once, with a small overshoot, and stays
+  // out. It settles on its natural length, so nothing depends on fill modes.
+  if (stage === 'guardrails' && typeof noseGroup.animate === 'function') {
+    noseGroup.animate([{ transform: 'scaleX(0.14)' }, { transform: 'scaleX(1)' }], {
+      duration: 520,
+      easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      fill: 'backwards',
+    })
+  }
+
+  return svg
 }

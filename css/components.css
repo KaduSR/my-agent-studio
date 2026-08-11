@@ -307,6 +307,65 @@
 
 /* -------------------------------- slider ------------------------------- */
 
+/*
+ * Nine sliders is a lot to set one by one, so the presets come first: one click
+ * moves all of them, and the summary underneath reads the result back as a
+ * sentence, which is the only form in which nine numbers mean anything.
+ *
+ * The pill row is shared with the Soul step's base souls, which is the same
+ * gesture applied to a different set of fields — one row of "start from this and
+ * adjust". Keeping one class keeps the two reading as the same affordance.
+ */
+.behavior-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: var(--space-5);
+}
+
+.behavior-preset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px var(--space-3);
+  font-size: var(--text-label);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.behavior-preset:hover {
+  color: var(--accent-deep);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.behavior-summary {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  font-size: var(--text-label);
+  line-height: var(--leading-relaxed);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  background: var(--surface-secondary);
+}
+
+.behavior-summary__tag {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: var(--weight-label);
+  color: var(--accent-deep);
+  background: var(--accent-soft-strong);
+  border-radius: var(--radius-pill);
+}
+
 .slider-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -479,7 +538,8 @@
  * back explicitly.
  */
 .dialog,
-.palette {
+.palette,
+.gallery {
   margin: auto;
   padding: 0;
   border: 1px solid var(--border-default);
@@ -490,7 +550,8 @@
 }
 
 .dialog::backdrop,
-.palette::backdrop {
+.palette::backdrop,
+.gallery::backdrop {
   background: rgba(16, 16, 16, 0.32);
   backdrop-filter: blur(2px);
 }
@@ -514,6 +575,294 @@
   justify-content: flex-end;
   gap: var(--space-2);
   padding: var(--space-4) var(--space-6) var(--space-6);
+}
+
+/* ------------------------------ choice cards ---------------------------- */
+
+/* Three ways to start an agent: wider than a confirmation, still a dialog. */
+.dialog--choices {
+  width: min(520px, calc(100vw - 32px));
+}
+
+/*
+ * An editor rather than a question: the knowledge dialog puts a Markdown source
+ * column beside its preview, and neither is readable at confirmation width.
+ *
+ * It is also the only dialog tall enough to outgrow a short screen, so the body
+ * scrolls and the actions stay pinned where they can be reached. The [open]
+ * qualifier matters: a bare `display: flex` would override the UA rule that keeps
+ * a closed dialog hidden.
+ */
+.dialog--wide {
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+}
+
+.dialog--wide[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.dialog--wide .dialog__body {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.choice-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-4);
+  text-align: left;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.choice-card:hover {
+  border-color: transparent;
+  box-shadow:
+    0 0 0 1.5px var(--accent),
+    var(--shadow-md);
+}
+
+.choice-card:active {
+  transform: translateY(1px);
+}
+
+.choice-card__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--radius-md);
+  color: var(--accent-deep);
+  background: var(--surface-muted);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.choice-card:hover .choice-card__icon {
+  background: var(--accent-soft);
+}
+
+.choice-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.choice-card__label {
+  font-size: var(--text-body);
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+}
+
+.choice-card__description {
+  font-size: var(--text-helper);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.choice-card__go {
+  display: inline-flex;
+  flex: none;
+  margin-top: 9px;
+  color: var(--text-disabled);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.choice-card:hover .choice-card__go {
+  color: var(--accent);
+  transform: translateX(2px);
+}
+
+/* ----------------------------- template gallery ------------------------- */
+
+/*
+ * A carousel rather than a long list: a page of six can be compared at a
+ * glance, and paging keeps the modal a fixed size instead of growing with the
+ * catalogue.
+ */
+.gallery {
+  display: flex;
+  flex-direction: column;
+  width: min(1040px, calc(100vw - 32px));
+  /*
+   * Fixed, like a slide: every page holds six cards, so letting the modal size
+   * itself would make it twitch by a line whenever a tagline wrapped.
+   */
+  height: min(516px, calc(100vh - 48px));
+  overflow: hidden;
+}
+
+.gallery__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex: none;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.gallery__title {
+  margin-bottom: 2px;
+}
+
+.gallery__close {
+  display: inline-flex;
+  flex: none;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.gallery__close:hover {
+  color: var(--text-primary);
+  background: var(--surface-muted);
+}
+
+.gallery__stage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-5) var(--space-4);
+}
+
+.gallery__arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-sm);
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.gallery__arrow:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.gallery__arrow:disabled {
+  opacity: 0.35;
+  box-shadow: none;
+  cursor: default;
+}
+
+.gallery__viewport {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.gallery__track {
+  display: flex;
+  height: 100%;
+  transition: transform var(--duration-panel) var(--ease-out);
+}
+
+.gallery__page {
+  flex: 0 0 100%;
+  min-width: 0;
+  align-content: start;
+  overflow-y: auto;
+  padding: 2px;
+}
+
+.gallery__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex: none;
+  padding: var(--space-3) var(--space-6) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.gallery__dots {
+  display: flex;
+  gap: 2px;
+}
+
+/*
+ * The visible dot is 7px, but the button around it is a full 24px target, so
+ * paging is usable with a thumb.
+ */
+.gallery__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: none;
+}
+
+.gallery__dot::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.gallery__dot[data-active='true']::after {
+  background: var(--gradient-primary);
+  transform: scale(1.5);
+}
+
+.gallery__counter {
+  font-size: var(--text-helper);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+@media (max-width: 767px) {
+  .gallery {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 24px);
+  }
+
+  .gallery__stage {
+    padding: var(--space-4) var(--space-4) 0;
+  }
+
+  /* Swipe and the dots carry navigation where there is no room for arrows. */
+  .gallery__arrow {
+    display: none;
+  }
 }
 
 /* ---------------------------- command palette -------------------------- */

@@ -10,6 +10,7 @@ import {
 } from '../../js/stores/library-store.js'
 import { STORAGE_KEYS, readJSON, writeJSON, isStorageAvailable } from '../../js/lib/storage.js'
 import { createEmptyAgent } from '../../js/agent/defaults.js'
+import { TOOLS } from '../../js/data/tools.js'
 
 /** Read the draft slot with a concrete type, so field access type-checks. */
 function readDraft() {
@@ -173,8 +174,29 @@ describe('migration from the pre-Guard-Rails schema', () => {
     const draft = reviveAgent(legacyAgent())
     expect(draft?.guardRails).toHaveLength(2)
     // And it is completed, not just renamed.
-    expect(draft?.tools).toHaveLength(10)
+    expect(draft?.tools).toHaveLength(TOOLS.length)
     expect(draft?.personality.tones).toEqual([])
+  })
+
+  it('gives an agent saved with the old catalogue the tools added since', () => {
+    // Exactly what a record written before the catalogue grew looks like: the
+    // ten original tools, one of them configured.
+    const agent = reviveAgent({
+      ...legacyAgent(),
+      tools: [
+        { id: 'web-search', name: 'Web Search', enabled: true, purpose: 'Conferir fatos.' },
+        { id: 'terminal', name: 'Terminal', enabled: false },
+      ],
+    })
+
+    expect(agent?.tools).toHaveLength(TOOLS.length)
+    // The configuration survived...
+    const search = agent?.tools.find((tool) => tool.id === 'web-search')
+    expect(search?.enabled).toBe(true)
+    expect(search?.purpose).toBe('Conferir fatos.')
+    // ...and a tool that did not exist when the record was written is there now.
+    expect(agent?.tools.some((tool) => tool.id === 'mcp')).toBe(true)
+    expect(agent?.tools.find((tool) => tool.id === 'mcp')?.enabled).toBe(false)
   })
 
   it('prefers the new key when a record somehow carries both', () => {
@@ -183,6 +205,20 @@ describe('migration from the pre-Guard-Rails schema', () => {
       guardRails: [{ id: 'new', text: 'Formato novo ganha.', order: 0 }],
     })
     expect(agent?.guardRails.map((rule) => rule.text)).toEqual(['Formato novo ganha.'])
+  })
+
+  it('gives an agent saved before the Knowledge step an empty shelf, not undefined', () => {
+    // Without the default here the step would read `undefined.length` on open.
+    const agent = reviveAgent(legacyAgent())
+    expect(agent?.knowledge).toEqual([])
+  })
+
+  it('keeps the knowledge of a record that already had some', () => {
+    const agent = reviveAgent({
+      ...legacyAgent(),
+      knowledge: [{ id: 'k1', title: 'Nota', content: 'Conteúdo.', order: 0 }],
+    })
+    expect(agent?.knowledge.map((doc) => doc.title)).toEqual(['Nota'])
   })
 })
 
@@ -197,6 +233,6 @@ describe('library recovery', () => {
     expect(agents[0].name).toBe('Bom')
     // The revived record is complete, not the partial object that was stored.
     expect(agents[0].personality.tones).toEqual([])
-    expect(agents[0].tools).toHaveLength(10)
+    expect(agents[0].tools).toHaveLength(TOOLS.length)
   })
 })

@@ -10,6 +10,7 @@
 
 import { MAX_TONES } from '../data/tones.js'
 import { MAX_TRAITS } from '../data/traits.js'
+import { SLIDER_IDS } from '../data/behavior-sliders.js'
 
 export const LIMITS = Object.freeze({
   nameMin: 2,
@@ -20,6 +21,13 @@ export const LIMITS = Object.freeze({
   ruleMax: 240,
   toolPurposeMax: 200,
   restrictionMax: 160,
+  // Knowledge documents are the only long text the agent carries, and every
+  // agent lives in localStorage. These ceilings are what keeps a knowledge base
+  // from filling the quota; writeJSON already reports it, but a quota error is a
+  // worse experience than a character counter.
+  knowledgeTitleMax: 80,
+  knowledgeContentMax: 4000,
+  maxKnowledgeDocs: 12,
   maxTones: MAX_TONES,
   maxTraits: MAX_TRAITS,
   maxRules: 40,
@@ -40,7 +48,8 @@ function asText(value) {
 
 /**
  * Validate a single field in isolation — used by inputs as the user types.
- * @param {'name' | 'description' | 'objective' | 'rule' | 'soulField' | 'toolPurpose'} field
+ * @param {'name' | 'description' | 'objective' | 'rule' | 'soulField' | 'toolPurpose'
+ *   | 'knowledgeTitle' | 'knowledgeContent'} field
  * @param {string} value
  * @returns {string | null} An error message, or null when valid.
  */
@@ -77,6 +86,18 @@ export function validateField(field, value) {
     case 'toolPurpose':
       if (text.length > LIMITS.toolPurposeMax)
         return `Use no máximo ${LIMITS.toolPurposeMax} caracteres.`
+      return null
+
+    case 'knowledgeTitle':
+      if (text.length === 0) return 'Dê um título ao documento.'
+      if (text.length > LIMITS.knowledgeTitleMax)
+        return `Use no máximo ${LIMITS.knowledgeTitleMax} caracteres.`
+      return null
+
+    case 'knowledgeContent':
+      if (text.length === 0) return 'Escreva o conteúdo do documento.'
+      if (text.length > LIMITS.knowledgeContentMax)
+        return `Use no máximo ${LIMITS.knowledgeContentMax} caracteres.`
       return null
 
     default:
@@ -117,14 +138,7 @@ export function validateAgent(agent) {
     errors['personality.traits'] = `Escolha no máximo ${LIMITS.maxTraits} traços.`
   }
 
-  for (const slider of /** @type {const} */ ([
-    'creativity',
-    'precision',
-    'formality',
-    'proactivity',
-    'detail',
-    'autonomy',
-  ])) {
+  for (const slider of SLIDER_IDS) {
     const value = agent.personality[slider]
     if (!Number.isFinite(value) || value < 0 || value > 100) {
       errors[`personality.${slider}`] = 'Use um valor entre 0 e 100.'
@@ -138,6 +152,18 @@ export function validateAgent(agent) {
     const message = validateField('rule', rule.text)
     if (message) {
       errors.guardRails = message
+      break
+    }
+  }
+
+  if (agent.knowledge.length > LIMITS.maxKnowledgeDocs) {
+    errors.knowledge = `Use no máximo ${LIMITS.maxKnowledgeDocs} documentos.`
+  }
+  for (const doc of agent.knowledge) {
+    const message =
+      validateField('knowledgeTitle', doc.title) ?? validateField('knowledgeContent', doc.content)
+    if (message) {
+      errors.knowledge = message
       break
     }
   }

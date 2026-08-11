@@ -31,6 +31,8 @@ export function isStepComplete(agent, step) {
       return agent.guardRails.some((rule) => rule.text.trim().length > 0)
     case 'tools':
       return agent.tools.some((tool) => tool.enabled)
+    case 'knowledge':
+      return agent.knowledge.length > 0
     case 'memory':
       return agent.memory.type !== 'none'
     case 'export':

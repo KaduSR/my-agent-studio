@@ -15,7 +15,7 @@
 import { h, on, setChildren } from '../lib/dom.js'
 import { icon } from '../icons.js'
 import { KEYNOTE } from '../data/keynote.js'
-import { puppet } from './puppet.js'
+import { puppet, stopPuppet } from './puppet.js'
 import { playEnter, playFlip, snapshot } from './flip.js'
 import { navigate } from '../router.js'
 import { trackEvent } from '../lib/analytics.js'
@@ -120,9 +120,12 @@ export function openKeynote() {
    * @returns {void}
    */
   function render(nextIndex, animate) {
-    // FIRST: measure the figure that is on screen right now.
+    // FIRST: measure the figure that is on screen right now. Measuring before
+    // its idle loops are cancelled is deliberate: the morph should start from
+    // where the figure visibly is, mid-bob included.
     const existing = art.querySelector('svg')
     const first = animate && existing ? snapshot(existing) : null
+    if (existing) stopPuppet(existing)
 
     index = nextIndex
     const slide = KEYNOTE[index]
@@ -239,6 +242,8 @@ export function openKeynote() {
 
   dialog.addEventListener('close', () => {
     open = false
+    const figure = art.querySelector('svg')
+    if (figure) stopPuppet(figure)
     dialog.remove()
   })
 

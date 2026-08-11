@@ -1,4 +1,13 @@
 import { expect, test } from '@playwright/test'
+import { KEYNOTE } from '../../js/data/keynote.js'
+import { GLOSSARY } from '../../js/data/glossary.js'
+
+/*
+ * The counters are derived from the content, not spelled out: adding a slide or a
+ * term is a routine edit and should not need three literals updated with it.
+ */
+const SLIDES = KEYNOTE.length
+const TERMS = GLOSSARY.length
 
 /*
  * Each test gets a fresh browser context, so localStorage starts empty and
@@ -38,6 +47,7 @@ test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
   // --- open studio -> create agent -------------------------------------
   await page.goto('/')
   await page.getByRole('button', { name: 'Criar novo agente' }).click()
+  await page.getByRole('button', { name: /Começar do zero/ }).click()
   await expect(page.getByRole('heading', { name: 'Como seu agente se chama?' })).toBeVisible()
 
   await page.getByLabel('Nome do agente').fill('Tutor de Inglês')
@@ -48,6 +58,15 @@ test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
   await page
     .getByLabel('O que este agente existe para fazer?')
     .fill('Ajudar pessoas a praticar inglês com conversas curtas e correções gentis.')
+
+  // --- soul, from a base archetype --------------------------------------
+  await step(page, 'Soul').click()
+  await page.getByRole('button', { name: /Tutor Socrático/ }).click()
+  await expect(page.getByText(/Soul Tutor Socrático aplicada/)).toBeVisible()
+  await expect(page.getByLabel('Missão')).toHaveValue(
+    'Fazer a pessoa sair sabendo explicar o assunto com as próprias palavras.'
+  )
+  await expect(trait(page, 'Empatia')).toHaveAttribute('aria-checked', 'true')
 
   // --- personality ------------------------------------------------------
   await step(page, 'Personalidade').click()
@@ -80,6 +99,22 @@ test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
     'true'
   )
 
+  // --- knowledge: one from the catalogue, one written by hand -----------
+  await step(page, 'Conhecimento').click()
+  await page.locator('.knowledge-card', { hasText: 'Lidar com incerteza' }).click()
+  await expect(page.getByText('Lidar com incerteza adicionado.')).toBeVisible()
+  await expect(page.locator('.knowledge-doc')).toHaveCount(1)
+
+  await page.getByRole('button', { name: /Escrever documento/ }).click()
+  await page.getByLabel('Título').fill('Correções gentis')
+  await page.getByLabel('Conteúdo').fill('# Correções gentis\n\n- Elogie a tentativa primeiro.')
+  await expect(page.locator('.knowledge-editor__preview')).toContainText(
+    'Elogie a tentativa primeiro.'
+  )
+  await page.getByRole('button', { name: /Adicionar/ }).click()
+  await expect(page.locator('.knowledge-doc')).toHaveCount(2)
+  await expect(page.getByText('2/12')).toBeVisible()
+
   // --- memory -----------------------------------------------------------
   await step(page, 'Memória').click()
   await page.getByRole('radio', { name: /Memória persistente/ }).click()
@@ -95,6 +130,8 @@ test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
   await expect(preview).toContainText('## Purpose')
   await expect(preview).toContainText('Corrija erros sem constranger o aluno.')
   await expect(preview).toContainText('Web Search')
+  await expect(preview).toContainText('## Knowledge')
+  await expect(preview).toContainText('### Correções gentis')
   await expect(preview).toContainText('Memória persistente')
 
   // --- copy the Markdown ------------------------------------------------
@@ -106,6 +143,8 @@ test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
   expect(clipboard).toContain('# Tutor de Inglês')
   expect(clipboard).toContain('## Guard Rails')
   expect(clipboard).toContain('Corrija erros sem constranger o aluno.')
+  expect(clipboard).toContain('## Knowledge')
+  expect(clipboard).toContain('Elogie a tentativa primeiro.')
 })
 
 test('state survives a reload and the agent reaches the library (SPEC 73, 93)', async ({
@@ -179,6 +218,10 @@ test('export is gated until name and objective exist (SPEC 50)', async ({ page }
 
   await expect(page.getByText('Seu agente ainda não tem nome.')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Baixar ZIP' })).toHaveCount(0)
+
+  // The save file is not documentation, so the gate does not apply to it: a
+  // half-filled agent is exactly what someone wants to carry elsewhere.
+  await expect(page.getByRole('button', { name: 'Baixar JSON do agente' })).toBeVisible()
 
   await step(page, 'Nome').click()
   await page.getByLabel('Nome do agente').fill('Pronto')
@@ -362,6 +405,209 @@ test('templates are reachable from the empty library and the palette', async ({ 
   await expect(page.getByLabel('Nome do agente')).toHaveValue('Redator de E-mails de Vendas')
 })
 
+test('creating an agent asks how to start', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Criar novo agente' }).click()
+
+  const chooser = page.locator('dialog.dialog--choices')
+  await expect(chooser).toBeVisible()
+  await expect(chooser.getByRole('button', { name: /Começar do zero/ })).toBeVisible()
+  await expect(chooser.getByRole('button', { name: /Usar um modelo/ })).toBeVisible()
+  await expect(chooser.getByRole('button', { name: /Importar JSON/ })).toBeVisible()
+
+  // Cancelling leaves the user where they were.
+  await page.getByRole('button', { name: 'Cancelar' }).click()
+  await expect(chooser).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: 'My Agent Studio' })).toBeVisible()
+
+  // The model route hands over to the gallery.
+  await page.getByRole('button', { name: 'Criar novo agente' }).click()
+  await page.getByRole('button', { name: /Usar um modelo/ }).click()
+  await expect(page.locator('dialog.gallery')).toBeVisible()
+})
+
+test('the gallery deals every model out in pages', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Ver todos os modelos' }).click()
+
+  const gallery = page.locator('dialog.gallery')
+  await expect(gallery).toBeVisible()
+  await expect(page.locator('.gallery__counter')).toHaveText('1 / 6')
+  await expect(page.locator('.gallery__page')).toHaveCount(6)
+  await expect(gallery.getByRole('button', { name: 'Modelos anteriores' })).toBeDisabled()
+
+  // Every template is present, six to a page.
+  await expect(gallery.locator('.template-card')).toHaveCount(35)
+
+  await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.gallery__counter')).toHaveText('2 / 6')
+  await page.keyboard.press('End')
+  await expect(page.locator('.gallery__counter')).toHaveText('6 / 6')
+  await expect(gallery.getByRole('button', { name: 'Próximos modelos' })).toBeDisabled()
+
+  // The Instagram-minded ones live on the last page.
+  await expect(gallery.getByRole('button', { name: /modelo Ideias de Reels/ })).toBeVisible()
+
+  // Off-screen pages are inert, so Tab cannot reach a card nobody can see.
+  await expect(page.locator('.gallery__page').first()).toHaveAttribute('aria-hidden', 'true')
+
+  await page.locator('.gallery__dot').first().click()
+  await expect(page.locator('.gallery__counter')).toHaveText('1 / 6')
+
+  // Picking a card closes the gallery and opens that agent, already filled in.
+  await gallery.getByRole('button', { name: /modelo Revisor de Código/ }).click()
+  await expect(gallery).toHaveCount(0)
+  await expect(page.getByLabel('Nome do agente')).toHaveValue('Revisor de Código')
+})
+
+test('the tools step is searchable, grouped, and takes a tool of your own', async ({ page }) => {
+  await page.goto('/#/studio/new/devops-oncall')
+  await step(page, 'Ferramentas').click()
+
+  // Four of the template's tools are on, out of the whole catalogue.
+  await expect(page.locator('.count-badge')).toHaveText('4 de 26 ativas')
+  await expect(page.locator('.tool-group')).toHaveCount(6)
+
+  // Search reaches the description and the category name, not just the title.
+  await page.getByLabel('Buscar ferramenta').fill('git')
+  await expect(page.getByRole('checkbox', { name: /Git/ })).toBeVisible()
+  await expect(page.getByRole('checkbox', { name: /Web Search/ })).toHaveCount(0)
+
+  await page.getByLabel('Buscar ferramenta').fill('nada que exista')
+  await expect(page.getByText('Nenhuma ferramenta encontrada')).toBeVisible()
+  await page.getByRole('button', { name: 'Limpar filtros' }).click()
+  await expect(page.getByRole('checkbox', { name: /Web Search/ })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Dados' }).click()
+  await expect(page.locator('.tool-group')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Todas' }).click()
+
+  // --- permission -------------------------------------------------------
+  await page.getByLabel('Buscar ferramenta').fill('terminal')
+  const terminal = page.locator('.tool-cell', { hasText: 'Terminal' })
+  await expect(terminal.getByRole('radio', { name: /Pergunta antes/ })).toHaveAttribute(
+    'aria-checked',
+    'true'
+  )
+  await terminal.getByRole('radio', { name: /Só leitura/ }).click()
+  await expect(terminal.getByRole('radio', { name: /Só leitura/ })).toHaveAttribute(
+    'aria-checked',
+    'true'
+  )
+  await page.getByLabel('Buscar ferramenta').fill('')
+
+  // --- a tool of your own -----------------------------------------------
+  await page.getByRole('button', { name: /Adicionar ferramenta/ }).click()
+  const dialog = page.locator('dialog.dialog')
+  await dialog.getByRole('textbox', { name: 'Nome' }).fill('Servidor MCP do time')
+  await dialog.getByRole('textbox', { name: 'O que ela faz' }).fill('Consulta o catálogo interno.')
+  await dialog.getByRole('button', { name: 'Adicionar' }).click()
+
+  await expect(page.locator('.count-badge')).toHaveText('5 de 27 ativas')
+  await expect(page.getByRole('checkbox', { name: /Servidor MCP do time/ })).toBeVisible()
+
+  // Both reach the document. (The preview starts collapsed.)
+  await page.getByRole('button', { name: /Mostrar pré-visualização/ }).click()
+  const preview = page.locator('.preview__body')
+  await expect(preview).toContainText('Servidor MCP do time')
+  await expect(preview).toContainText('Permissão: somente leitura')
+
+  // A catalogue tool cannot be deleted; a custom one can.
+  await expect(page.getByRole('button', { name: 'Remover ferramenta: Terminal' })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Remover ferramenta: Servidor MCP do time' }).click()
+  await expect(page.locator('.count-badge')).toHaveText('4 de 26 ativas')
+})
+
+test('the export step separates prompts from kits', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+
+  await page.goto('/#/studio/new/sales-email')
+  await step(page, 'Exportar').click()
+
+  // Three families, each its own radiogroup.
+  await expect(page.locator('.preset-family')).toHaveCount(3)
+  await expect(page.getByRole('heading', { name: 'Prompt de criação' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Documento único' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Kit para ferramentas' })).toBeVisible()
+
+  // A kit is a folder, and offers a ZIP.
+  await expect(page.getByRole('button', { name: 'Baixar ZIP' })).toBeVisible()
+
+  // A prompt is one file, and offers what someone came for: copying it.
+  await page.getByRole('radio', { name: /Prompt para Claude Code/ }).click()
+  await expect(page.getByRole('button', { name: 'Baixar ZIP' })).toHaveCount(0)
+  await expect(page.locator('.export-hint')).toContainText('conversa nova do Claude Code')
+  await expect(page.locator('.tree__file--single')).toHaveText('prompt-claude-code.md')
+
+  await page.getByRole('button', { name: 'Copiar prompt' }).click()
+  const prompt = await page.evaluate(() => navigator.clipboard.readText())
+  expect(prompt).toContain('CLAUDE.md')
+  expect(prompt).toContain('<agente>')
+  expect(prompt).toContain('Redator de E-mails de Vendas')
+
+  // ChatGPT and Gemini say where their text goes.
+  await page.getByRole('radio', { name: /Prompt para ChatGPT/ }).click()
+  await expect(page.locator('.export-hint')).toContainText('GPT personalizado')
+  await page.getByRole('radio', { name: /Prompt para Gemini/ }).click()
+  await expect(page.locator('.export-hint')).toContainText('Gem')
+
+  // The single document keeps its own pair of actions.
+  await page.getByRole('radio', { name: /Markdown único/ }).click()
+  await expect(page.getByRole('button', { name: 'Baixar AGENT.md' })).toBeVisible()
+  await expect(page.locator('.tree__file--single')).toHaveText('AGENT.md')
+})
+
+test('an agent survives a round trip through JSON', async ({ page }) => {
+  // --- export ------------------------------------------------------------
+  await page.goto('/#/studio/new/benchmark-research')
+  await step(page, 'Exportar').click()
+
+  const download = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Baixar JSON do agente' }).click(),
+  ]).then(([event]) => event)
+
+  expect(download.suggestedFilename()).toBe('pesquisador-de-benchmark.agent.json')
+
+  const path = await download.path()
+  const { readFile } = await import('node:fs/promises')
+  const exported = await readFile(path, 'utf8')
+  expect(JSON.parse(exported).agent.name).toBe('Pesquisador de Benchmark')
+
+  // --- import ------------------------------------------------------------
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Criar novo agente' }).click()
+  await page.getByRole('button', { name: /Importar JSON/ }).click()
+  await page.locator('dialog.dialog--choices input[type=file]').setInputFiles({
+    name: 'pesquisador.agent.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(exported, 'utf8'),
+  })
+
+  await expect(page.getByLabel('Nome do agente')).toHaveValue('Pesquisador de Benchmark')
+
+  // Not just the header: the steps behind it came back too.
+  await step(page, 'Guard Rails').click()
+  await expect(page.getByRole('textbox', { name: 'Regra 1' })).toHaveValue(
+    'Cite a fonte de cada afirmação comparativa.'
+  )
+})
+
+test('a broken file is refused with a readable reason', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Criar novo agente' }).click()
+  await page.getByRole('button', { name: /Importar JSON/ }).click()
+  await page.locator('dialog.dialog--choices input[type=file]').setInputFiles({
+    name: 'lista.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from('{"pedido": 42}', 'utf8'),
+  })
+
+  await expect(page.locator('.toast')).toContainText('não descreve um agente')
+  // The dialog stays open, so the user can try another file.
+  await expect(page.locator('dialog.dialog--choices')).toBeVisible()
+})
+
 test('the keynote runs end to end from both entry points', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Como funciona?' }).click()
@@ -369,22 +615,28 @@ test('the keynote runs end to end from both entry points', async ({ page }) => {
   const keynote = page.locator('dialog.keynote')
   await expect(keynote).toBeVisible()
   await expect(page.locator('.keynote__title')).toHaveText('O que é um agente?')
-  await expect(page.locator('.keynote__counter')).toHaveText('1 / 10')
+  await expect(page.locator('.keynote__counter')).toHaveText(`1 / ${SLIDES}`)
   // Nothing to go back to on the first slide.
   await expect(page.getByRole('button', { name: 'Slide anterior' })).toBeDisabled()
 
-  // Walk to the end with the keyboard alone.
-  for (let i = 0; i < 9; i += 1) await page.keyboard.press('ArrowRight')
+  // The model comes before step 1: the opening slide says what the user builds
+  // is not the model, so the next one has to say what the model is.
+  await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.keynote__title')).toHaveText('O cérebro já vem pronto')
+  await expect(page.locator('.keynote__lesson')).toContainText('LLM')
 
-  await expect(page.locator('.keynote__counter')).toHaveText('10 / 10')
+  // Walk to the end with the keyboard alone.
+  for (let i = 0; i < SLIDES - 2; i += 1) await page.keyboard.press('ArrowRight')
+
+  await expect(page.locator('.keynote__counter')).toHaveText(`${SLIDES} / ${SLIDES}`)
   await expect(page.locator('.keynote__title')).toHaveText('Agora esculpe o seu')
   await expect(page.getByRole('button', { name: 'Próximo slide' })).toBeDisabled()
 
   // Back one, then jump home and to the end.
   await page.keyboard.press('ArrowLeft')
-  await expect(page.locator('.keynote__counter')).toHaveText('9 / 10')
+  await expect(page.locator('.keynote__counter')).toHaveText(`${SLIDES - 1} / ${SLIDES}`)
   await page.keyboard.press('Home')
-  await expect(page.locator('.keynote__counter')).toHaveText('1 / 10')
+  await expect(page.locator('.keynote__counter')).toHaveText(`1 / ${SLIDES}`)
 
   await page.keyboard.press('Escape')
   await expect(keynote).toHaveCount(0)
@@ -398,7 +650,7 @@ test('the keynote runs end to end from both entry points', async ({ page }) => {
 test('the keynote explains Guard Rails with the nose that grows', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('button', { name: 'Como funciona?' }).click()
-  for (let i = 0; i < 5; i += 1) await page.keyboard.press('ArrowRight')
+  for (let i = 0; i < 6; i += 1) await page.keyboard.press('ArrowRight')
 
   await expect(page.locator('.keynote__title')).toHaveText('Guard Rails')
   await expect(page.locator('.keynote__story')).toContainText('o nariz crescia')
@@ -412,11 +664,85 @@ test('the keynote explains Guard Rails with the nose that grows', async ({ page 
       return nose ? nose.getBoundingClientRect().width : 0
     })
 
+  // The nose grows into place over half a second, so both measurements are
+  // taken with the drawing at rest rather than mid-animation.
+  await page.waitForTimeout(700)
   const onGuardRails = await noseWidth()
   await page.keyboard.press('ArrowRight')
+  await page.waitForTimeout(700)
   const onTools = await noseWidth()
 
   expect(onGuardRails).toBeGreaterThan(onTools * 2)
+})
+
+test('the wiki explains the vocabulary with the same puppet', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Dicionário de termos' }).click()
+
+  const wiki = page.locator('dialog.wiki')
+  await expect(wiki).toBeVisible()
+  await expect(page.locator('.wiki__term')).toHaveText('LLM')
+  await expect(page.locator('.wiki__counter')).toHaveText(`1 / ${TERMS}`)
+  await expect(page.getByRole('button', { name: 'Termo anterior' })).toBeDisabled()
+
+  // Every term is reachable from the rail, in any order.
+  await wiki.locator('.wiki__rail-item', { hasText: 'Harness' }).click()
+  await expect(page.locator('.wiki__term')).toHaveText('Harness')
+  await expect(page.locator('.wiki__plain')).toContainText('estrutura em volta do modelo')
+  await expect(page.locator('.wiki__story')).toContainText('cruzeta')
+
+  // And the arrows walk it like the keynote.
+  await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.wiki__term')).toHaveText('Ferramentas')
+  await page.keyboard.press('End')
+  await expect(page.locator('.wiki__term')).toHaveText('Alucinação')
+  await expect(page.getByRole('button', { name: 'Próximo termo' })).toBeDisabled()
+
+  // The figure is the keynote's, and it is moving here too.
+  const pose = () =>
+    page.evaluate(() => {
+      const figure = document.querySelector('.wiki__art .puppet > g')
+      return figure ? getComputedStyle(figure).transform : 'none'
+    })
+
+  const before = await pose()
+  await page.waitForTimeout(240)
+  expect(before).not.toBe('none')
+  expect(await pose()).not.toBe(before)
+
+  await page.keyboard.press('Escape')
+  await expect(wiki).toHaveCount(0)
+
+  // It is in the header everywhere, not only on the home page.
+  await page.goto('/#/studio/new')
+  await page.getByRole('button', { name: 'Dicionário de termos' }).click()
+  await expect(page.locator('dialog.wiki')).toBeVisible()
+})
+
+test('the puppet is alive on every slide, not only on the ones with props', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Como funciona?' }).click()
+  await page.waitForTimeout(500)
+
+  // The figure group carries the idle bob. Reading its computed transform twice
+  // is what separates "has an animation" from "is actually moving".
+  const pose = () =>
+    page.evaluate(() => {
+      const figure = document.querySelector('.puppet > g')
+      return figure ? getComputedStyle(figure).transform : 'none'
+    })
+
+  for (let slide = 1; slide <= 11; slide += 1) {
+    const before = await pose()
+    await page.waitForTimeout(240)
+    const after = await pose()
+
+    expect(before, `slide ${slide} has no transform`).not.toBe('none')
+    expect(after, `slide ${slide} is frozen`).not.toBe(before)
+
+    await page.keyboard.press('ArrowRight')
+    await page.waitForTimeout(260)
+  }
 })
 
 test('the closing slide leads into the builder', async ({ page }) => {

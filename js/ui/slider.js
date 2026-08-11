@@ -10,7 +10,7 @@
 
 import { h, on } from '../lib/dom.js'
 import { icon } from '../icons.js'
-import { sliderBand } from '../data/behavior-sliders.js'
+import { bandFor } from '../data/behavior-sliders.js'
 import { infoTooltip } from './tooltip.js'
 
 /**
@@ -18,13 +18,15 @@ import { infoTooltip } from './tooltip.js'
  * @param {import('../data/behavior-sliders.js').SliderDefinition} config.definition
  * @param {number} config.value
  * @param {(value: number) => void} config.onChange
- * @returns {HTMLElement}
+ * @returns {{ element: HTMLElement, set: (value: number) => void }}
+ *   `set` writes the DOM only. Presets go through the store in one write, so a
+ *   second notification from here would be a redundant round trip.
  */
 export function behaviorSlider({ definition, value, onChange }) {
   const inputId = `slider-${definition.id}`
-  const band = () => sliderBand(Number(input.value), definition.lowLabel, definition.highLabel)
+  const band = () => bandFor(definition, Number(input.value))
 
-  const readout = h('span', { class: 'slider__readout' }, sliderBand(value, definition.lowLabel, definition.highLabel))
+  const readout = h('span', { class: 'slider__readout' }, bandFor(definition, value))
 
   const input = h('input', {
     type: 'range',
@@ -34,21 +36,22 @@ export function behaviorSlider({ definition, value, onChange }) {
     max: '100',
     step: '1',
     value: String(value),
-    'aria-valuetext': sliderBand(value, definition.lowLabel, definition.highLabel),
+    'aria-valuetext': bandFor(definition, value),
   })
 
-  const sync = () => {
+  /** @param {boolean} [notify] */
+  const sync = (notify = true) => {
     const next = Number(input.value)
     input.setAttribute('aria-valuetext', band())
     readout.textContent = band()
     input.style.setProperty('--slider-fill', `${next}%`)
-    onChange(next)
+    if (notify) onChange(next)
   }
 
   input.style.setProperty('--slider-fill', `${value}%`)
-  on(input, 'input', sync)
+  on(input, 'input', () => sync())
 
-  return h(
+  const element = h(
     'div',
     { class: 'slider' },
     h(
@@ -72,4 +75,12 @@ export function behaviorSlider({ definition, value, onChange }) {
       h('span', { class: 'slider__end helper' }, definition.highLabel)
     )
   )
+
+  return {
+    element,
+    set: (next) => {
+      input.value = String(next)
+      sync(false)
+    },
+  }
 }

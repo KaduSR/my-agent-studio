@@ -125,19 +125,6 @@
   border-radius: 4px;
 }
 
-.header__privacy {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 8px 5px 9px;
-  font-size: var(--text-helper);
-  font-weight: var(--weight-label);
-  color: var(--text-secondary);
-  background: var(--surface-secondary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-pill);
-}
-
 /* -------------------------------- pages -------------------------------- */
 
 .page {
@@ -295,10 +282,6 @@
   }
 
   .breadcrumb {
-    display: none;
-  }
-
-  .header__privacy-text {
     display: none;
   }
 

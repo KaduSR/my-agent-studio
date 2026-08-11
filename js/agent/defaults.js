@@ -7,9 +7,12 @@
  */
 
 import { uuid } from '../lib/uuid.js'
-import { TOOLS } from '../data/tools.js'
+import { defaultSliderValues } from '../data/behavior-sliders.js'
 import { DEFAULT_AVATAR_ID } from '../data/avatars.js'
 import { getTemplate } from '../data/templates.js'
+import { getKnowledgeEntry } from '../data/knowledge-library.js'
+import { createToolCatalogue } from './tool-catalogue.js'
+import { LIMITS } from './validate.js'
 
 /** SPEC 76. */
 export const DEFAULT_GUARD_RAILS = Object.freeze([
@@ -27,15 +30,12 @@ export const DEFAULT_MEMORY_RESTRICTIONS = Object.freeze([
   'Respeitar pedidos de esquecimento.',
 ])
 
-/** Slider defaults mirror the config.json example in SPEC 39. */
-export const DEFAULT_SLIDERS = Object.freeze({
-  creativity: 50,
-  precision: 70,
-  formality: 40,
-  proactivity: 60,
-  detail: 60,
-  autonomy: 50,
-})
+/**
+ * Slider defaults mirror the config.json example in SPEC 39. They are read from
+ * the slider catalogue rather than repeated here, so a new slider cannot ship
+ * with no starting position.
+ */
+export const DEFAULT_SLIDERS = Object.freeze(defaultSliderValues())
 
 /**
  * @param {string} text
@@ -47,13 +47,38 @@ export function createRule(text, order) {
 }
 
 /**
+ * The single place a knowledge document comes into existence: the store, the
+ * importer and the template expander all go through here.
+ *
+ * Text is trimmed here rather than at each call site, so a document added from
+ * the catalogue and one typed by hand are stored identically. Otherwise the
+ * catalogue's trailing newline would survive in one path and not the other, and
+ * an exported file would not import back byte for byte.
+ *
+ * @param {string} title
+ * @param {string} content
+ * @param {number} order
+ * @param {string} [sourceId] The knowledge-library entry this started as.
+ * @returns {import('./types.js').AgentKnowledge}
+ */
+export function createKnowledgeDoc(title, content, order, sourceId) {
+  return {
+    id: uuid(),
+    title: title.trim(),
+    content: content.trim(),
+    order,
+    ...(sourceId ? { sourceId } : {}),
+  }
+}
+
+/**
  * The full tool catalogue, all disabled. Storing every tool (rather than only
- * the enabled ones) keeps per-tool purpose and rules stable when the user
- * toggles a tool off and back on.
+ * the enabled ones) keeps per-tool purpose, rules and permission stable when the
+ * user toggles a tool off and back on.
  * @returns {import('./types.js').AgentTool[]}
  */
 export function createDefaultTools() {
-  return TOOLS.map((tool) => ({ id: tool.id, name: tool.name, enabled: false }))
+  return createToolCatalogue()
 }
 
 /**
@@ -89,6 +114,7 @@ export function createEmptyAgent(overrides = {}) {
     },
     guardRails: DEFAULT_GUARD_RAILS.map((text, index) => createRule(text, index)),
     tools: createDefaultTools(),
+    knowledge: [],
     memory: createDefaultMemory(),
     createdAt: now,
     updatedAt: now,
@@ -101,11 +127,15 @@ export function createEmptyAgent(overrides = {}) {
  *
  * Templates replace the single worked example SPEC 75 described: rather than one
  * generic agent appearing unbidden on a first visit, the user picks the role
- * they actually want and gets all eight steps filled in.
+ * they actually want and gets all nine steps filled in.
  *
  * The tool list keeps all ten entries with only the named ones enabled, so
  * per-tool purpose and rules survive the user toggling one off and on again.
  * Hard rules get fresh ids here, never shared with the template definition.
+ *
+ * Knowledge arrives as catalogue ids and is expanded into real documents, copied
+ * so the user can edit them. An id the catalogue no longer has is dropped rather
+ * than expanded into an empty document.
  *
  * @param {string} templateId
  * @returns {import('./types.js').Agent}
@@ -129,6 +159,11 @@ export function createAgentFromTemplate(templateId) {
     tools: base.tools.map((tool) =>
       enabled.has(tool.id) ? { ...tool, enabled: true } : tool
     ),
+    knowledge: (source.knowledge ?? [])
+      .map((entryId) => getKnowledgeEntry(entryId))
+      .filter((entry) => entry !== undefined)
+      .slice(0, LIMITS.maxKnowledgeDocs)
+      .map((entry, index) => createKnowledgeDoc(entry.title, entry.content, index, entry.id)),
     memory: {
       ...base.memory,
       type: source.memory.type,

@@ -595,6 +595,61 @@
 
 /* --------------------------------- tools ------------------------------- */
 
+.tool-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+}
+
+.tool-filters__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tool-filters__search {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-filters__categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/*
+ * The filter chips share the chip look, but they are toggles rather than
+ * selections: aria-pressed carries the state, so they need the same visual
+ * treatment aria-checked gets in components.css.
+ */
+.tool-filters .chip[aria-pressed='true'] {
+  color: var(--text-on-accent);
+  background: var(--gradient-primary);
+  border-color: transparent;
+}
+
+.tool-group + .tool-group {
+  margin-top: var(--space-6);
+}
+
+.tool-group__header {
+  margin-bottom: var(--space-3);
+}
+
+.tool-group__title {
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.tool-group__description {
+  margin-top: 2px;
+}
+
 .tool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -634,6 +689,341 @@
   flex-direction: column;
   gap: 6px;
   margin-top: var(--space-1);
+}
+
+/* The three permission cards sit tight together, as one control. */
+.tool-permission {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tool-permission .option-card {
+  padding: var(--space-2) var(--space-3);
+}
+
+.tool-permission .option-card__icon {
+  width: 26px;
+  height: 26px;
+}
+
+.tool-cell__head {
+  display: flex;
+  align-items: flex-start;
+}
+
+.tool-cell__head .option-card {
+  flex: 1;
+  min-width: 0;
+}
+
+.tool-cell__remove {
+  display: inline-flex;
+  flex: none;
+  align-self: center;
+  padding: 8px;
+  margin-right: 6px;
+  border-radius: var(--radius-md);
+  color: var(--text-disabled);
+}
+
+.tool-cell__remove:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+/* Dashed, so it reads as "add one" rather than as a tool that exists. */
+.tool-add {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  text-align: left;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.tool-add:hover {
+  border-color: var(--accent);
+  border-style: solid;
+}
+
+.tool-add__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--radius-md);
+  color: var(--accent-deep);
+  background: var(--surface-muted);
+}
+
+.tool-add__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.tool-add__label {
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+}
+
+.tool-add__description {
+  font-size: var(--text-helper);
+  color: var(--text-secondary);
+}
+
+.custom-tool-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+/* ------------------------------ knowledge ------------------------------ */
+
+/*
+ * Two shelves: what the agent already carries, and what it could. The first is a
+ * list because order matters — it is the order the documents appear in the
+ * exported prompt. The second is a grid, because nothing about a catalogue is
+ * sequential.
+ */
+.knowledge-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.knowledge-doc {
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.knowledge-doc__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.knowledge-doc__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.knowledge-doc__title {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+  font-weight: var(--weight-section);
+  color: var(--text-primary);
+}
+
+/* Provenance, not a status: this document started as a catalogue entry and has
+ * been the user's own copy ever since. */
+.knowledge-doc__badge {
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.03em;
+  color: var(--accent-deep);
+  background: var(--accent-soft);
+  border-radius: var(--radius-pill);
+}
+
+/*
+ * Clamped rather than `nowrap`: a nowrap line reports its whole width as its
+ * min-content size, and .section__content is a grid item that cannot shrink below
+ * that — so the cards would push out past the section they sit in.
+ */
+.knowledge-doc__excerpt {
+  margin-top: 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.knowledge-doc__actions {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+
+.knowledge-doc__meta {
+  margin-top: var(--space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.knowledge-group + .knowledge-group {
+  margin-top: var(--space-6);
+}
+
+.knowledge-group__title {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.knowledge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+
+/*
+ * An add button, not a checkbox: adding copies the document, so there is nothing
+ * for a second click to undo. `data-added` is the state, `data-blocked` the
+ * reason it will not act again — and it stays operable either way, so the click
+ * can explain itself.
+ */
+.knowledge-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  text-align: left;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.knowledge-card:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.knowledge-card[data-added='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.knowledge-card[data-blocked='true'] {
+  opacity: 0.55;
+}
+
+.knowledge-card[data-blocked='true']:hover {
+  box-shadow: none;
+}
+
+.knowledge-card__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  color: var(--accent-deep);
+  background: var(--accent-soft);
+  border-radius: var(--radius-md);
+}
+
+.knowledge-card[data-added='true'] .knowledge-card__icon {
+  background: var(--surface);
+}
+
+.knowledge-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.knowledge-card__label {
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+.knowledge-card__summary {
+  font-size: var(--text-helper);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.knowledge-card__state {
+  flex: none;
+  color: var(--text-muted);
+}
+
+.knowledge-card[data-added='true'] .knowledge-card__state {
+  color: var(--accent-deep);
+}
+
+/* ----------------------- knowledge editor dialog ---------------------- */
+
+.knowledge-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+.knowledge-editor__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.knowledge-editor__pane {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/*
+ * The grid equalises the two columns, so the preview takes the height the
+ * textarea sets rather than the height its own content wants. That is what keeps
+ * typing from growing the dialog and shifting the buttons under the cursor; long
+ * documents scroll inside it, via the overflow .md-view already carries.
+ */
+.knowledge-editor__preview {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.knowledge-editor__empty {
+  padding: var(--space-4);
+  font-family: var(--font-sans);
+}
+
+/*
+ * Below this the two columns are narrower than the Markdown they hold, and a
+ * preview you have to scroll sideways is worse than no preview: stack instead.
+ */
+@media (max-width: 860px) {
+  .knowledge-editor {
+    grid-template-columns: 1fr;
+  }
+
+  /* Stacked, there is no second column to borrow a height from. */
+  .knowledge-editor__preview {
+    height: 220px;
+  }
 }
 
 /* -------------------------------- memory ------------------------------- */
@@ -723,10 +1113,56 @@
   color: var(--text-primary);
 }
 
+/* The six formats answer three questions; the families keep them apart. */
+.preset-families {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.preset-family__header {
+  margin-bottom: var(--space-3);
+}
+
+.preset-family__title {
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.preset-family__description {
+  margin-top: 2px;
+}
+
+.export-hint {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  border-left: 2px solid var(--accent);
+  background: var(--surface-secondary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
 .export-actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+}
+
+/*
+ * The save file sits below whatever else the step is showing, separated by a
+ * rule: it is the one action that stays available even while the export itself
+ * is still blocked.
+ */
+.export-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px dashed var(--border-default);
 }
 
 .export-gate {
@@ -751,6 +1187,81 @@
   gap: 4px;
   font-size: var(--text-label);
   color: var(--text-secondary);
+}
+
+/* ------------------------------ compat strip --------------------------- */
+
+/*
+ * The "works with" row, between the hero and the templates.
+ *
+ * Grey and unhurried on purpose: it is reassurance, not a call to action, and
+ * anything with more contrast would compete with the two buttons above it.
+ */
+.compat {
+  padding: var(--space-6) 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.compat__title {
+  margin-bottom: var(--space-4);
+  font-size: 11px;
+  font-weight: var(--weight-label);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-disabled);
+  text-align: center;
+}
+
+/*
+ * The fade at both edges is what makes the row read as continuous rather than
+ * as a list that happens to be cut off.
+ */
+.compat__viewport {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+}
+
+.compat__track {
+  display: flex;
+  width: max-content;
+  /* Two identical lanes, translated by exactly half: no seam, no JavaScript. */
+  animation: compat-drift 42s linear infinite;
+}
+
+.compat__viewport:hover .compat__track {
+  animation-play-state: paused;
+}
+
+@keyframes compat-drift {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.compat__lane {
+  display: flex;
+  align-items: center;
+  flex: none;
+  gap: var(--space-8);
+  padding-right: var(--space-8);
+}
+
+.compat__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+  color: var(--text-disabled);
+  filter: grayscale(1);
+}
+
+.compat__name {
+  font-size: 15px;
+  font-weight: var(--weight-label);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 /* --------------------------------- home -------------------------------- */
@@ -961,6 +1472,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--space-3);
+}
+
+.templates__more {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
 }
 
 .template-card {

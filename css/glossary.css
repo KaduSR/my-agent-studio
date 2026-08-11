@@ -1,0 +1,255 @@
+/*
+ * The beginner's dictionary.
+ *
+ * Shares the keynote's stage grammar (a figure that flies between positions,
+ * copy that fades in beside it) but adds the rail, because a dictionary is
+ * something you jump around in rather than sit through.
+ */
+
+.wiki {
+  width: min(960px, calc(100vw - 32px));
+  /* Fixed, like the keynote: entries differ in length and the panel must not
+     resize under the reader's eyes between terms. */
+  height: min(600px, calc(100vh - 48px));
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.wiki::backdrop {
+  background: rgba(16, 16, 16, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.wiki__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex: none;
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.wiki__title {
+  margin-bottom: 2px;
+}
+
+.wiki__close {
+  display: inline-flex;
+  flex: none;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.wiki__close:hover {
+  color: var(--text-primary);
+  background: var(--surface-muted);
+}
+
+/* --------------------------------- body -------------------------------- */
+
+.wiki__body {
+  display: grid;
+  grid-template-columns: 188px minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+}
+
+.wiki__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  overflow-y: auto;
+  border-right: 1px solid var(--border-subtle);
+  background: var(--surface-secondary);
+}
+
+.wiki__rail-item {
+  padding: 9px var(--space-3);
+  text-align: left;
+  font-size: var(--text-label);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.wiki__rail-item:hover {
+  color: var(--text-primary);
+  background: var(--surface);
+}
+
+.wiki__rail-item[data-active='true'] {
+  color: var(--accent-deep);
+  font-weight: var(--weight-label);
+  background: var(--accent-soft);
+}
+
+.wiki__entry {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-6);
+  min-height: 0;
+  padding: var(--space-6) var(--space-8);
+  overflow-y: auto;
+  /* A gentle wash, so the figure is not floating on flat white. */
+  background:
+    radial-gradient(760px 340px at 15% 0%, var(--accent-soft), transparent 70%),
+    var(--surface);
+}
+
+/* Placing the art second is what flips the composition, and what gives the
+   FLIP morph something to interpolate between two terms. */
+.wiki__entry[data-side='right'] {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.wiki__entry[data-side='right'] .wiki__art {
+  order: 2;
+}
+
+.wiki__art {
+  display: flex;
+  justify-content: center;
+  flex: none;
+}
+
+.wiki__eyebrow {
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--space-2);
+}
+
+.wiki__term {
+  font-size: 30px;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Focused on every change purely so screen readers announce it; it is not an
+   interactive control, so it must not draw a ring the user cannot act on. */
+.wiki__term:focus,
+.wiki__term:focus-visible {
+  outline: none;
+}
+
+.wiki__plain {
+  margin-top: var(--space-3);
+  font-size: 16px;
+  line-height: var(--leading-relaxed);
+  color: var(--text-primary);
+}
+
+.wiki__story,
+.wiki__example {
+  margin-top: var(--space-4);
+  font-size: 14px;
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+
+.wiki__story {
+  font-style: italic;
+}
+
+.wiki__tag {
+  display: inline-block;
+  margin-right: 7px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: var(--weight-label);
+  letter-spacing: 0.02em;
+  color: var(--accent-deep);
+  background: var(--accent-soft-strong);
+  border-radius: var(--radius-pill);
+  vertical-align: 2px;
+}
+
+/* --------------------------------- nav --------------------------------- */
+
+.wiki__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex: none;
+  padding: var(--space-3) var(--space-6) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface);
+}
+
+.wiki__counter {
+  font-size: var(--text-helper);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-muted);
+}
+
+/* ------------------------------ responsive ----------------------------- */
+
+@media (max-width: 860px) {
+  .wiki {
+    width: calc(100vw - 24px);
+    height: calc(100vh - 24px);
+  }
+
+  /* The rail becomes a strip above the entry, scrolling sideways. */
+  .wiki__body {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .wiki__rail {
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .wiki__rail-item {
+    white-space: nowrap;
+  }
+
+  .wiki__entry,
+  .wiki__entry[data-side='right'] {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    text-align: center;
+    gap: var(--space-4);
+    padding: var(--space-5);
+  }
+
+  /* On one column the figure always leads. */
+  .wiki__entry[data-side='right'] .wiki__art {
+    order: 0;
+  }
+
+  .wiki__art .puppet {
+    width: 140px;
+    height: 168px;
+  }
+
+  .wiki__term {
+    font-size: 24px;
+  }
+}

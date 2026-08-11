@@ -8,12 +8,15 @@
  */
 
 import { h, setChildren } from '../lib/dom.js'
+import { icon } from '../icons.js'
 import { TONES, MAX_TONES } from '../data/tones.js'
 import { TRAITS, MAX_TRAITS } from '../data/traits.js'
 import { RESPONSE_STYLES } from '../data/response-styles.js'
-import { BEHAVIOR_SLIDERS } from '../data/behavior-sliders.js'
+import { BEHAVIOR_PRESETS, BEHAVIOR_SLIDERS, behaviorSummary } from '../data/behavior-sliders.js'
 import {
+  applyBehaviorPreset,
   builderStore,
+  resetBehaviorSliders,
   setResponseStyle,
   setSlider,
   toggleTone,
@@ -132,18 +135,75 @@ export function personalityStep() {
   )
 
   // Sliders own their DOM value, so they are built once and never re-rendered:
-  // re-rendering mid-drag would drop the pointer capture.
+  // re-rendering mid-drag would drop the pointer capture. A preset therefore
+  // writes to the store *and* pushes the new values into each control by hand.
   const personality = builderStore.getState().agent.personality
-  const sliders = h(
+  const controls = BEHAVIOR_SLIDERS.map((definition) =>
+    behaviorSlider({
+      definition,
+      value: personality[definition.id],
+      onChange: (value) => setSlider(definition.id, value),
+    })
+  )
+
+  const syncSliders = () => {
+    const current = builderStore.getState().agent.personality
+    BEHAVIOR_SLIDERS.forEach((definition, index) => {
+      controls[index].set(current[definition.id])
+    })
+  }
+
+  const sliders = h('div', { class: 'slider-grid' }, ...controls.map((control) => control.element))
+
+  const presets = h(
     'div',
-    { class: 'slider-grid' },
-    ...BEHAVIOR_SLIDERS.map((definition) =>
-      behaviorSlider({
-        definition,
-        value: personality[definition.id],
-        onChange: (value) => setSlider(definition.id, value),
-      })
+    { class: 'behavior-presets', role: 'group', 'aria-label': 'Perfis de comportamento' },
+    ...BEHAVIOR_PRESETS.map((preset) =>
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'behavior-preset',
+          title: preset.description,
+          onclick: () => {
+            applyBehaviorPreset(preset.id)
+            syncSliders()
+            showToast({ message: `Perfil ${preset.label} aplicado.`, variant: 'success' })
+          },
+        },
+        icon(/** @type {any} */ (preset.icon), { size: 15 }),
+        h('span', null, preset.label)
+      )
     )
+  )
+
+  const resetButton = h(
+    'button',
+    {
+      type: 'button',
+      class: 'link-button',
+      onclick: () => {
+        resetBehaviorSliders()
+        syncSliders()
+      },
+    },
+    'Voltar ao padrão'
+  )
+
+  // Nine numbers say nothing on their own; this reads them back as a sentence.
+  const summary = reactiveBlock(
+    (state) => state.agent.personality,
+    (container) => {
+      setChildren(
+        container,
+        h(
+          'p',
+          { class: 'behavior-summary' },
+          h('span', { class: 'behavior-summary__tag' }, 'Resumindo'),
+          behaviorSummary(builderStore.getState().agent.personality)
+        )
+      )
+    }
   )
 
   const element = stepShell(
@@ -171,8 +231,16 @@ export function personalityStep() {
       traits.element
     ),
     section(
-      { title: 'Comportamento', emoji: '🎚️', description: 'Ajuste fino de como ele decide e responde.' },
-      sliders
+      {
+        title: 'Comportamento',
+        emoji: '🎚️',
+        description:
+          'Ajuste fino de como ele decide e responde. Comece por um perfil e mexa no que não combinar.',
+        aside: resetButton,
+      },
+      presets,
+      sliders,
+      summary.element
     )
   )
 
@@ -182,6 +250,7 @@ export function personalityStep() {
       tones.destroy()
       styles.destroy()
       traits.destroy()
+      summary.destroy()
     },
   }
 }

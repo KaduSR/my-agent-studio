@@ -45,7 +45,7 @@ export function previewPanel(options = {}) {
   const narrow = window.matchMedia('(max-width: 1023px)')
   const isEffectivelyCollapsed = () => collapsed && !narrow.matches
 
-  const body = h('div', { class: 'preview__body', id: 'preview-body' })
+  const body = h('div', { class: 'preview__body md-view', id: 'preview-body' })
   const status = h('span', { class: 'save-status', dataset: { status: 'idle' } })
 
   const copyButton = h(

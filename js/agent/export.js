@@ -11,7 +11,9 @@ import { slugify } from '../lib/uuid.js'
 import { logger } from '../lib/logger.js'
 import { trackEvent } from '../lib/analytics.js'
 import { generateAgentMarkdown } from './markdown.js'
+import { generateCreationPrompt } from './prompts.js'
 import { buildFileTree, exportRootName, generateConfigJson } from './files.js'
+import { serializeAgent } from './transfer.js'
 
 /**
  * @param {string} text
@@ -90,6 +92,49 @@ export function downloadAgentMarkdown(agent) {
 export function downloadConfigJson(agent) {
   downloadBlob(`${slugify(agent.name)}.config.json`, generateConfigJson(agent), 'application/json;charset=utf-8')
   trackEvent('agent_exported', { agentId: agent.id, format: 'json' })
+}
+
+/**
+ * @param {import('./types.js').Agent} agent
+ * @param {import('./prompts.js').PromptTarget} target
+ * @returns {Promise<boolean>}
+ */
+export async function copyCreationPrompt(agent, target) {
+  const ok = await copyText(generateCreationPrompt(agent, target))
+  if (ok) trackEvent('markdown_copied', { agentId: agent.id, prompt: target })
+  return ok
+}
+
+/**
+ * @param {import('./types.js').Agent} agent
+ * @param {import('./prompts.js').PromptTarget} target
+ * @returns {void}
+ */
+export function downloadCreationPrompt(agent, target) {
+  downloadBlob(
+    `${slugify(agent.name)}.prompt-${target}.md`,
+    generateCreationPrompt(agent, target),
+    'text/markdown;charset=utf-8'
+  )
+  trackEvent('agent_exported', { agentId: agent.id, format: `prompt-${target}` })
+}
+
+/**
+ * The editable state, as a file the studio can read back.
+ *
+ * Distinct from config.json on purpose: that one is flattened for whoever runs
+ * the agent, this one is the save file (agent/transfer.js explains the split).
+ *
+ * @param {import('./types.js').Agent} agent
+ * @returns {void}
+ */
+export function downloadAgentJson(agent) {
+  downloadBlob(
+    `${slugify(agent.name)}.agent.json`,
+    serializeAgent(agent),
+    'application/json;charset=utf-8'
+  )
+  trackEvent('agent_exported', { agentId: agent.id, format: 'agent-json' })
 }
 
 /**

@@ -22,13 +22,14 @@ test('every route loads with no console errors', async ({ page }) => {
   await page.goto('/#/studio/new')
   await expect(page.getByRole('navigation', { name: /Etapas/ })).toBeVisible()
 
-  // Walk all eight steps so every step module actually executes.
+  // Walk every step so each step module actually executes.
   for (const label of [
     'Objetivo',
     'Soul',
     'Personalidade',
     'Guard Rails',
     'Ferramentas',
+    'Conhecimento',
     'Memória',
     'Exportar',
   ]) {

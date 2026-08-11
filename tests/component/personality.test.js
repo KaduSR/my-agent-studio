@@ -4,7 +4,8 @@ import { screen, within } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import { personalityStep } from '../../js/steps/personality.js'
 import { loadAgent, getAgent } from '../../js/stores/builder-store.js'
-import { createEmptyAgent } from '../../js/agent/defaults.js'
+import { createEmptyAgent, DEFAULT_SLIDERS } from '../../js/agent/defaults.js'
+import { BEHAVIOR_PRESETS, BEHAVIOR_SLIDERS } from '../../js/data/behavior-sliders.js'
 
 /** @type {{ element: HTMLElement, destroy?: () => void }} */
 let view
@@ -157,7 +158,7 @@ describe('traits (SPEC 25)', () => {
 describe('behaviour sliders (SPEC 26)', () => {
   it('uses native range inputs with a human aria-valuetext', async () => {
     const sliders = document.querySelectorAll('input[type="range"]')
-    expect(sliders).toHaveLength(6)
+    expect(sliders).toHaveLength(BEHAVIOR_SLIDERS.length)
 
     const creativity = /** @type {HTMLInputElement} */ (document.querySelector('#slider-creativity'))
     expect(creativity.getAttribute('aria-valuetext')).toBe('Equilibrado')
@@ -167,5 +168,44 @@ describe('behaviour sliders (SPEC 26)', () => {
 
     expect(getAgent().personality.creativity).toBe(95)
     expect(creativity.getAttribute('aria-valuetext')).toBe('Muito experimental')
+  })
+
+  it('never announces a band nobody would say out loud', () => {
+    // The old formula prefixed "Muito" to the low label, which produced
+    // "Muito só responde". Every band is now written out.
+    const autonomy = /** @type {HTMLInputElement} */ (document.querySelector('#slider-autonomy'))
+    autonomy.value = '5'
+    autonomy.dispatchEvent(new Event('input', { bubbles: true }))
+    expect(autonomy.getAttribute('aria-valuetext')).toBe('Confirma cada passo')
+  })
+
+  it('applies a preset to every slider at once, in the store and on screen', async () => {
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /Rigoroso/ }))
+
+    const rigorous = /** @type {import('../../js/data/behavior-sliders.js').BehaviorPreset} */ (
+      BEHAVIOR_PRESETS.find((preset) => preset.id === 'rigorous')
+    )
+
+    for (const slider of BEHAVIOR_SLIDERS) {
+      expect(getAgent().personality[slider.id], slider.id).toBe(rigorous.values[slider.id])
+      // The controls own their DOM value, so the preset has to push it in.
+      const input = /** @type {HTMLInputElement} */ (
+        document.querySelector(`#slider-${slider.id}`)
+      )
+      expect(input.value, slider.id).toBe(String(rigorous.values[slider.id]))
+    }
+  })
+
+  it('reads the nine sliders back as one sentence', async () => {
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /Executivo/ }))
+
+    const summary = document.querySelector('.behavior-summary')
+    expect(summary?.textContent).toContain('enxuto')
+
+    await user.click(screen.getByRole('button', { name: 'Voltar ao padrão' }))
+    expect(getAgent().personality).toMatchObject(DEFAULT_SLIDERS)
+    expect(document.querySelector('.behavior-summary')?.textContent).toContain('Equilibrado em tudo')
   })
 })

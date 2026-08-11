@@ -10,9 +10,11 @@ import { deleteAgent, libraryStore, listAgents } from '../stores/library-store.j
 import { navigate } from '../router.js'
 import { relativeTime } from '../components/agent-card.js'
 import { templateGrid } from '../components/template-picker.js'
+import { compatStrip } from '../components/compat-strip.js'
 import { confirmDialog } from '../ui/dialog.js'
 import { showToast } from '../ui/toast.js'
 import { openKeynote } from '../ui/keynote.js'
+import { openNewAgentDialog } from '../ui/new-agent-dialog.js'
 
 const RECENT_LIMIT = 3
 
@@ -128,7 +130,7 @@ export function homeView() {
             {
               type: 'button',
               class: 'btn btn-primary',
-              onclick: () => navigate('/studio/new'),
+              onclick: openNewAgentDialog,
             },
             icon('plus', { size: 16 }),
             'Criar novo agente'
@@ -162,6 +164,7 @@ export function homeView() {
         )
       )
     ),
+    compatStrip(),
     templateGrid({
       title: 'Comece com um modelo',
       description:

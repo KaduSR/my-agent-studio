@@ -1,5 +1,5 @@
 // @ts-check
-/** The eight builder steps (SPEC 8, 13, 56). */
+/** The nine builder steps (SPEC 8, 13, 56). */
 
 /**
  * @typedef {Object} StepDefinition
@@ -74,8 +74,19 @@ export const STEPS = Object.freeze([
     subtitle: 'Declare as ferramentas que seu agente espera ter à disposição.',
   },
   {
-    id: 'memory',
+    id: 'knowledge',
     index: 7,
+    label: 'Conhecimento',
+    hint: 'O que ele deve consultar',
+    icon: 'file-text',
+    title: 'O que ele precisa saber?',
+    subtitle: 'Reúna as boas práticas e os guias que devem orientar as respostas dele.',
+    tooltip:
+      'Conhecimento é material de consulta que vai junto com o agente e vale para todas as conversas. Diferente da memória, ele não depende do que já foi conversado.',
+  },
+  {
+    id: 'memory',
+    index: 8,
     label: 'Memória',
     hint: 'O que ele deve lembrar',
     icon: 'brain',
@@ -84,7 +95,7 @@ export const STEPS = Object.freeze([
   },
   {
     id: 'export',
-    index: 8,
+    index: 9,
     label: 'Exportar',
     hint: 'Leve para onde quiser',
     icon: 'package',

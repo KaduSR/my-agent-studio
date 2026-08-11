@@ -8,6 +8,7 @@ import { RESPONSE_STYLES } from '../../js/data/response-styles.js'
 import { SOUL_VALUES } from '../../js/data/soul-values.js'
 import { TOOLS } from '../../js/data/tools.js'
 import { MEMORY_REMEMBER_OPTIONS, MEMORY_TYPES } from '../../js/data/memory.js'
+import { KNOWLEDGE_LIBRARY } from '../../js/data/knowledge-library.js'
 import { validateAgent } from '../../js/agent/validate.js'
 
 /**
@@ -62,6 +63,15 @@ describe.each(TEMPLATES.map((template) => [template.id, template]))(
       for (const tool of template.agent.tools) {
         expect(ids(TOOLS)).toContain(tool)
       }
+    })
+
+    it('references only knowledge entries that exist, without repeats', () => {
+      const knowledge = template.agent.knowledge ?? []
+      expect(knowledge.length).toBeGreaterThan(0)
+      for (const entry of knowledge) {
+        expect(ids(KNOWLEDGE_LIBRARY)).toContain(entry)
+      }
+      expect(new Set(knowledge).size).toBe(knowledge.length)
     })
 
     it('uses a real memory type and real remember options', () => {
@@ -133,6 +143,23 @@ describe('createAgentFromTemplate', () => {
     expect(new Set(firstIds).size).toBe(firstIds.length)
     expect(firstIds).not.toEqual(second.guardRails.map((rule) => rule.id))
     expect(first.id).not.toBe(second.id)
+  })
+
+  it('expands knowledge ids into editable copies, numbered from zero', () => {
+    const agent = createAgentFromTemplate('customer-support')
+
+    expect(agent.knowledge.map((doc) => doc.sourceId)).toEqual([
+      'tone-of-voice',
+      'human-handoff',
+      'data-privacy',
+    ])
+    expect(agent.knowledge.map((doc) => doc.order)).toEqual([0, 1, 2])
+
+    // A copy, so editing it cannot reach back into the catalogue.
+    const entry = KNOWLEDGE_LIBRARY.find((candidate) => candidate.id === 'tone-of-voice')
+    expect(agent.knowledge[0].title).toBe(entry?.title)
+    expect(agent.knowledge[0].content).toBe(entry?.content.trim())
+    expect(new Set(agent.knowledge.map((doc) => doc.id)).size).toBe(3)
   })
 
   it('numbers hard rules contiguously from zero', () => {

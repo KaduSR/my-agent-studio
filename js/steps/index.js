@@ -7,6 +7,7 @@ import { soulStep } from './soul.js'
 import { personalityStep } from './personality.js'
 import { rulesStep } from './rules.js'
 import { toolsStep } from './tools.js'
+import { knowledgeStep } from './knowledge.js'
 import { memoryStep } from './memory.js'
 import { exportStep } from './export.js'
 
@@ -28,6 +29,8 @@ export function renderStep(step) {
       return rulesStep()
     case 'tools':
       return toolsStep()
+    case 'knowledge':
+      return knowledgeStep()
     case 'memory':
       return memoryStep()
     case 'export':

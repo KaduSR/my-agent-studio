@@ -3,7 +3,7 @@
  * Command palette (SPEC 91, SPEC 83).
  *
  * SPEC 91 gives a binary choice: make the search field real, or remove it.
- * This makes it real — it searches the eight builder steps and every saved
+ * This makes it real — it searches the nine builder steps and every saved
  * agent, and activating a result actually navigates there.
  *
  * Built on <dialog> for the focus trap, with aria-activedescendant so the

@@ -11,6 +11,7 @@ import {
 } from '../stores/library-store.js'
 import { agentCard } from '../components/agent-card.js'
 import { templateGrid } from '../components/template-picker.js'
+import { openNewAgentDialog } from '../ui/new-agent-dialog.js'
 import { confirmDialog } from '../ui/dialog.js'
 import { showToast } from '../ui/toast.js'
 import { downloadAgentZip } from '../agent/export.js'
@@ -118,7 +119,7 @@ export function libraryView() {
         {
           type: 'button',
           class: 'btn btn-primary',
-          onclick: () => navigate('/studio/new'),
+          onclick: openNewAgentDialog,
         },
         icon('plus', { size: 16 }),
         'Criar agente'

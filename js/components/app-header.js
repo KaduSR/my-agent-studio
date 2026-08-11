@@ -7,9 +7,12 @@
  * wordmark and no "by Meta" line anywhere in the product.
  *
  * SPEC 102.17 forbids controls that do nothing, which is why there is no signed
- * -out user menu: with no accounts in the MVP it would be pure decoration. The
- * slot carries the storage-privacy indicator from SPEC 68 instead, which is a
- * real statement about where the user's data lives.
+ * -out user menu: with no accounts in the MVP it would be pure decoration.
+ *
+ * The storage-privacy indicator from SPEC 68 used to sit here as a padlock chip.
+ * It now lives only on the home page (`.hero__privacy`), where it is a full
+ * sentence rather than a badge that needed hovering to mean anything. The
+ * statement is still made, once, where someone is reading.
  */
 
 import { h, s, on } from '../lib/dom.js'
@@ -17,7 +20,7 @@ import { icon } from '../icons.js'
 import { navigate } from '../router.js'
 import { openCommandPalette } from '../ui/command-palette.js'
 import { openKeynote } from '../ui/keynote.js'
-import { infoTooltip } from '../ui/tooltip.js'
+import { openGlossary } from '../ui/glossary.js'
 
 /**
  * @typedef {Object} Crumb
@@ -58,7 +61,7 @@ export function appHeader(crumbs) {
       onclick: () => openCommandPalette(),
     },
     icon('search', { size: 15 }),
-    h('span', { class: 'header__search-label' }, 'Buscar no estúdio...'),
+    h('span', { class: 'header__search-label' }, 'Buscar...'),
     h('kbd', { class: 'header__kbd' }, navigator.platform.includes('Mac') ? '⌘K' : 'Ctrl K')
   )
 
@@ -106,13 +109,6 @@ export function appHeader(crumbs) {
       { class: 'header__actions' },
       searchButton,
       h(
-        'span',
-        { class: 'header__privacy' },
-        icon('lock', { size: 13 }),
-        h('span', { class: 'header__privacy-text' }, 'Local'),
-        infoTooltip('Seus agentes permanecem neste navegador. Nada é enviado para servidores.', 'Sobre privacidade')
-      ),
-      h(
         'button',
         {
           type: 'button',
@@ -122,6 +118,17 @@ export function appHeader(crumbs) {
           onclick: openKeynote,
         },
         icon('life-buoy', { size: 17 })
+      ),
+      h(
+        'button',
+        {
+          type: 'button',
+          class: 'btn btn-ghost btn-icon',
+          'aria-label': 'Dicionário de termos',
+          title: 'Dicionário de termos',
+          onclick: openGlossary,
+        },
+        icon('graduation-cap', { size: 17 })
       )
     )
   )

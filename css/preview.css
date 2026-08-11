@@ -117,7 +117,12 @@
   background: var(--danger);
 }
 
-.preview__body {
+/*
+ * Everything renderMarkdown() needs around it, independent of where the viewer
+ * sits. The panel below is one host; the knowledge editor's preview is another,
+ * and both have to compute the same line box or the gutter drifts.
+ */
+.md-view {
   /*
    * The gutter and the code column are separate elements, so they only stay
    * in step if both use the same computed line box. --md-row is that shared
@@ -127,13 +132,16 @@
   --md-row: calc(12.5px * 1.65);
 
   display: flex;
-  flex: 1;
-  min-height: 0;
   overflow: auto;
   background: var(--surface-code);
   font-family: var(--font-mono);
   font-size: var(--md-font-size);
   line-height: var(--md-row);
+}
+
+.preview__body {
+  flex: 1;
+  min-height: 0;
 }
 
 .md-gutter {

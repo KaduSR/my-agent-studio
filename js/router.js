@@ -74,6 +74,19 @@ export function replacePath(path) {
 }
 
 /**
+ * Re-run the current route.
+ *
+ * Needed when something outside the URL changed what the route should produce —
+ * an imported agent handed to `/studio/new`, say — and the address is already
+ * the right one, so assigning the hash would be a no-op.
+ *
+ * @returns {void}
+ */
+export function reloadRoute() {
+  window.dispatchEvent(new HashChangeEvent('hashchange'))
+}
+
+/**
  * @returns {RouteMatch}
  */
 export function currentRoute() {

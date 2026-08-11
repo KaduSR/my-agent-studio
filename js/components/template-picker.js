@@ -2,37 +2,32 @@
 /**
  * The template grid, shared by the home page and the empty library.
  *
- * Each card states what actually comes pre-filled ("3 tons · 6 regras · 2
- * ferramentas") so it reads as a complete agent rather than a label. Cards are
- * real buttons, so Enter and Space work without extra key handling.
+ * It shows a curated handful and hands the rest to the gallery. Thirty cards on
+ * the landing page would bury the calls to action above them, and a page that
+ * scrolls for a minute reads as a catalogue rather than as a start.
  */
 
 import { h } from '../lib/dom.js'
 import { icon } from '../icons.js'
 import { TEMPLATES } from '../data/templates.js'
-import { navigate } from '../router.js'
+import { templateCard } from './template-card.js'
+import { openTemplateGallery } from '../ui/template-gallery.js'
 
-/**
- * @param {import('../data/templates.js').AgentTemplate} template
- * @returns {string}
- */
-function summarise(template) {
-  const { personality, guardRails, tools } = template.agent
-  const parts = [
-    `${personality.tones.length} ${personality.tones.length === 1 ? 'tom' : 'tons'}`,
-    `${guardRails.length} regras`,
-    `${tools.length} ${tools.length === 1 ? 'ferramenta' : 'ferramentas'}`,
-  ]
-  return parts.join(' · ')
-}
+/** How many templates the inline grid shows before deferring to the gallery. */
+export const GRID_LIMIT = 6
 
 /**
  * @param {Object} [options]
  * @param {string} [options.title]
  * @param {string} [options.description]
+ * @param {number} [options.limit] How many cards to show inline.
  * @returns {HTMLElement}
  */
 export function templateGrid(options = {}) {
+  const limit = options.limit ?? GRID_LIMIT
+  const shown = TEMPLATES.slice(0, limit)
+  const hidden = TEMPLATES.length - shown.length
+
   return h(
     'section',
     { class: 'templates' },
@@ -46,39 +41,27 @@ export function templateGrid(options = {}) {
             : null
         )
       : null,
-    h(
-      'ul',
-      { class: 'template-grid' },
-      ...TEMPLATES.map((template) =>
-        h(
-          'li',
-          null,
+    h('ul', { class: 'template-grid' }, ...shown.map((template) => templateCard(template))),
+    hidden > 0
+      ? h(
+          'div',
+          { class: 'templates__more' },
           h(
             'button',
             {
               type: 'button',
-              class: 'template-card',
-              // The visible text is enough for sighted users; the label spells
-              // out that activating this creates an agent.
-              'aria-label': `Criar agente a partir do modelo ${template.label}. ${template.tagline}`,
-              onclick: () => navigate(`/studio/new/${template.id}`),
+              class: 'btn btn-secondary',
+              onclick: () => openTemplateGallery(),
             },
-            h('span', { class: 'template-card__emoji', 'aria-hidden': 'true' }, template.emoji),
-            h(
-              'span',
-              { class: 'template-card__body' },
-              h('span', { class: 'template-card__label' }, template.label),
-              h('span', { class: 'template-card__tagline' }, template.tagline),
-              h('span', { class: 'template-card__meta' }, summarise(template))
-            ),
-            h(
-              'span',
-              { class: 'template-card__go', 'aria-hidden': 'true' },
-              icon('arrow-right', { size: 15 })
-            )
+            icon('layers', { size: 15 }),
+            'Ver todos os modelos'
+          ),
+          h(
+            'p',
+            { class: 'helper' },
+            `Mais ${hidden} ${hidden === 1 ? 'modelo' : 'modelos'} na galeria.`
           )
         )
-      )
-    )
+      : null
   )
 }

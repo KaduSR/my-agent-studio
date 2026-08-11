@@ -9,11 +9,17 @@
  */
 
 import { createStore } from '../lib/store.js'
-import { createEmptyAgent, createRule } from '../agent/defaults.js'
+import { createEmptyAgent, createKnowledgeDoc, createRule, DEFAULT_SLIDERS } from '../agent/defaults.js'
+import { getBehaviorPreset } from '../data/behavior-sliders.js'
+import { getSoulPreset } from '../data/soul-presets.js'
+import { getKnowledgeEntry } from '../data/knowledge-library.js'
+import { CUSTOM_TOOL_PREFIX } from '../agent/tool-catalogue.js'
+import { LIMITS } from '../agent/validate.js'
 import { MAX_TONES } from '../data/tones.js'
 import { MAX_TRAITS } from '../data/traits.js'
 import { STEP_IDS } from '../data/steps.js'
 import { trackEvent } from '../lib/analytics.js'
+import { slugify } from '../lib/uuid.js'
 
 /** @typedef {'idle' | 'saving' | 'saved' | 'error'} SaveStatus */
 
@@ -163,6 +169,24 @@ export function toggleSoulValue(valueId) {
   })
 }
 
+/**
+ * Fill the whole Soul from an archetype.
+ *
+ * One store write rather than four, for the same reason applyBehaviorPreset
+ * does it: the preset lands as a single revision instead of a burst. The values
+ * array is copied because the catalogue entry is frozen and this one is about to
+ * be toggled.
+ *
+ * @param {string} presetId
+ * @returns {boolean} false when the id is unknown.
+ */
+export function applySoulPreset(presetId) {
+  const preset = getSoulPreset(presetId)
+  if (!preset) return false
+  updateSoul({ ...preset.soul, values: [...preset.soul.values] })
+  return true
+}
+
 /* ----------------------------- personality --------------------------- */
 
 /**
@@ -205,7 +229,7 @@ export function setResponseStyle(styleId) {
 }
 
 /**
- * @param {'creativity' | 'precision' | 'formality' | 'proactivity' | 'detail' | 'autonomy'} slider
+ * @param {import('../data/behavior-sliders.js').SliderId} slider
  * @param {number} value
  * @returns {void}
  */
@@ -215,14 +239,39 @@ export function setSlider(slider, value) {
   updatePersonality({ [slider]: clamped })
 }
 
+/**
+ * Move every slider at once.
+ *
+ * One store write rather than nine, so a preset lands as a single undoable
+ * change and autosave sees one revision instead of a burst.
+ *
+ * @param {string} presetId
+ * @returns {boolean} false when the id is unknown.
+ */
+export function applyBehaviorPreset(presetId) {
+  const preset = getBehaviorPreset(presetId)
+  if (!preset) return false
+  updatePersonality({ ...preset.values })
+  return true
+}
+
+/** Put the nine sliders back where a new agent starts. @returns {void} */
+export function resetBehaviorSliders() {
+  updatePersonality({ ...DEFAULT_SLIDERS })
+}
+
 /* ------------------------------ hard rules --------------------------- */
 
 /**
- * @param {import('../agent/types.js').AgentRule[]} rules
- * @returns {import('../agent/types.js').AgentRule[]}
+ * Make `order` contiguous again after an insert, a removal or a move. Shared with
+ * knowledge documents, which are ordered the same way.
+ *
+ * @template {{ order: number }} T
+ * @param {T[]} items
+ * @returns {T[]}
  */
-function renumber(rules) {
-  return rules.map((rule, index) => (rule.order === index ? rule : { ...rule, order: index }))
+function renumber(items) {
+  return items.map((item, index) => (item.order === index ? item : { ...item, order: index }))
 }
 
 /**
@@ -324,6 +373,172 @@ export function updateTool(id, patch) {
     ...agent,
     tools: agent.tools.map((tool) => (tool.id === id ? { ...tool, ...patch } : tool)),
   }))
+}
+
+/**
+ * @param {string} id
+ * @param {import('../data/tools.js').ToolPermission} permission
+ * @returns {void}
+ */
+export function setToolPermission(id, permission) {
+  patchAgent((agent) => ({
+    ...agent,
+    tools: agent.tools.map((tool) =>
+      tool.id === id && tool.permission !== permission ? { ...tool, permission } : tool
+    ),
+  }))
+}
+
+/**
+ * Declare a tool the catalogue does not have: an MCP server, an in-house
+ * service. It arrives enabled, since nobody types a name for something they do
+ * not want, and at `ask`, since nothing is known about what it can do.
+ *
+ * @param {{ name: string, description?: string }} input
+ * @returns {string | null} The new tool's id, or null when the name was empty.
+ */
+export function addCustomTool({ name, description = '' }) {
+  const label = name.trim().slice(0, LIMITS.nameMax)
+  if (!label) return null
+
+  const existing = new Set(getAgent().tools.map((tool) => tool.id))
+  const base = `${CUSTOM_TOOL_PREFIX}${slugify(label, 'ferramenta')}`
+  let id = base
+  // A second "Slack" must not silently become the first one.
+  for (let suffix = 2; existing.has(id); suffix += 1) id = `${base}-${suffix}`
+
+  patchAgent((agent) => ({
+    ...agent,
+    tools: [
+      ...agent.tools,
+      {
+        id,
+        name: label,
+        enabled: true,
+        custom: true,
+        permission: 'ask',
+        description: description.trim().slice(0, LIMITS.descriptionMax),
+      },
+    ],
+  }))
+
+  trackEvent('tool_enabled', { toolId: id, custom: true })
+  return id
+}
+
+/**
+ * Only custom tools can be removed; catalogue tools are toggled off instead.
+ * @param {string} id
+ * @returns {void}
+ */
+export function removeCustomTool(id) {
+  patchAgent((agent) => {
+    const target = agent.tools.find((tool) => tool.id === id)
+    if (!target?.custom) return agent
+    return { ...agent, tools: agent.tools.filter((tool) => tool.id !== id) }
+  })
+}
+
+/* ------------------------------ knowledge ---------------------------- */
+
+/**
+ * @typedef {Object} KnowledgeInput
+ * @property {string} title
+ * @property {string} content
+ */
+
+/**
+ * Add a document the user wrote.
+ *
+ * Returns null rather than throwing so the step can decide what to say: an empty
+ * title and a full shelf are different messages.
+ *
+ * @param {KnowledgeInput} input
+ * @returns {string | null} The new id, or null when nothing was added.
+ */
+export function addKnowledgeDoc(input) {
+  const title = input.title.trim().slice(0, LIMITS.knowledgeTitleMax)
+  const content = input.content.trim().slice(0, LIMITS.knowledgeContentMax)
+  if (!title || !content) return null
+  if (getAgent().knowledge.length >= LIMITS.maxKnowledgeDocs) return null
+
+  const doc = createKnowledgeDoc(title, content, getAgent().knowledge.length)
+  patchAgent((agent) => ({ ...agent, knowledge: renumber([...agent.knowledge, doc]) }))
+  return doc.id
+}
+
+/**
+ * Copy a catalogue entry into the agent.
+ *
+ * A copy, not a reference: the whole point of the catalogue is that the document
+ * is editable afterwards. `sourceId` records where it came from, which is also
+ * what makes adding the same entry twice detectable.
+ *
+ * @param {string} entryId
+ * @returns {string | null} null when the id is unknown or already added.
+ */
+export function addKnowledgeFromLibrary(entryId) {
+  const entry = getKnowledgeEntry(entryId)
+  if (!entry) return null
+
+  const current = getAgent().knowledge
+  if (current.some((doc) => doc.sourceId === entryId)) return null
+  if (current.length >= LIMITS.maxKnowledgeDocs) return null
+
+  const doc = createKnowledgeDoc(entry.title, entry.content, current.length, entry.id)
+  patchAgent((agent) => ({ ...agent, knowledge: renumber([...agent.knowledge, doc]) }))
+  return doc.id
+}
+
+/**
+ * Edit a document in place.
+ *
+ * An edited document keeps its `sourceId`: it still came from the catalogue, and
+ * forgetting that would let the same entry be added again alongside it.
+ *
+ * @param {string} id
+ * @param {Partial<KnowledgeInput>} patch
+ * @returns {void}
+ */
+export function updateKnowledgeDoc(id, patch) {
+  patchAgent((agent) => ({
+    ...agent,
+    knowledge: agent.knowledge.map((doc) => {
+      if (doc.id !== id) return doc
+      const title = patch.title === undefined ? doc.title : patch.title.slice(0, LIMITS.knowledgeTitleMax)
+      const content =
+        patch.content === undefined ? doc.content : patch.content.slice(0, LIMITS.knowledgeContentMax)
+      if (title === doc.title && content === doc.content) return doc
+      return { ...doc, title, content }
+    }),
+  }))
+}
+
+/**
+ * @param {string} id
+ * @returns {void}
+ */
+export function removeKnowledgeDoc(id) {
+  patchAgent((agent) => {
+    const remaining = agent.knowledge.filter((doc) => doc.id !== id)
+    if (remaining.length === agent.knowledge.length) return agent
+    return { ...agent, knowledge: renumber(remaining) }
+  })
+}
+
+/**
+ * @param {number} from
+ * @param {number} to
+ * @returns {void}
+ */
+export function moveKnowledgeDoc(from, to) {
+  patchAgent((agent) => {
+    const docs = [...agent.knowledge].sort((a, b) => a.order - b.order)
+    if (from < 0 || from >= docs.length || to < 0 || to >= docs.length || from === to) return agent
+    const [moved] = docs.splice(from, 1)
+    docs.splice(to, 0, moved)
+    return { ...agent, knowledge: renumber(docs) }
+  })
 }
 
 /* -------------------------------- memory ----------------------------- */

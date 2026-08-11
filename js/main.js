@@ -15,6 +15,7 @@ import { libraryView } from './views/library.js'
 import { builderView } from './views/builder.js'
 import { loadAgent } from './stores/builder-store.js'
 import { getAgent, loadLibrary, reviveAgent } from './stores/library-store.js'
+import { takePendingAgent } from './stores/pending-agent.js'
 import { setPersisted, startAutosave } from './stores/autosave.js'
 import { createAgentFromTemplate, createEmptyAgent } from './agent/defaults.js'
 import { isTemplateId } from './data/templates.js'
@@ -34,14 +35,19 @@ let activeView = null
 /**
  * Decide which agent a fresh `/studio/new` should start from.
  *
- * An explicitly chosen template always wins: the user asked for that role, so
- * silently restoring an unrelated draft over it would be wrong. The draft is
+ * An imported file wins over everything: it is the one source that cannot be
+ * rebuilt from the URL, so losing it to a restored draft would be unrecoverable.
+ * After that an explicitly chosen template wins: the user asked for that role,
+ * so silently restoring an unrelated draft over it would be wrong. The draft is
  * left in storage either way and comes back on the next plain `/studio/new`.
  *
  * @param {string | undefined} templateId
  * @returns {import('./agent/types.js').Agent}
  */
 function agentForNewRoute(templateId) {
+  const imported = takePendingAgent()
+  if (imported) return imported
+
   if (templateId) {
     if (!isTemplateId(templateId)) {
       showToast({ message: 'Modelo não encontrado. Começando do zero.', variant: 'error' })
@@ -71,7 +77,7 @@ function agentForNewRoute(templateId) {
  */
 function resolveRoute(route) {
   if (route.name === 'library') {
-    return { view: libraryView(), crumbs: [{ label: 'Estúdio', path: '/' }, { label: 'Meus agentes' }] }
+    return { view: libraryView(), crumbs: [{ label: 'Início', path: '/' }, { label: 'Meus agentes' }] }
   }
 
   if (route.name === 'new') {
@@ -81,7 +87,7 @@ function resolveRoute(route) {
     return {
       view: builderView(),
       crumbs: [
-        { label: 'Estúdio', path: '/' },
+        { label: 'Início', path: '/' },
         { label: 'Meus agentes', path: '/studio' },
         { label: route.params.template ? agent.name : 'Novo agente' },
       ],
@@ -96,7 +102,7 @@ function resolveRoute(route) {
           'Agente não encontrado',
           'Ele pode ter sido excluído, ou foi criado em outro navegador.'
         ),
-        crumbs: [{ label: 'Estúdio', path: '/' }, { label: 'Meus agentes', path: '/studio' }, { label: 'Não encontrado' }],
+        crumbs: [{ label: 'Início', path: '/' }, { label: 'Meus agentes', path: '/studio' }, { label: 'Não encontrado' }],
       }
     }
 
@@ -105,7 +111,7 @@ function resolveRoute(route) {
     return {
       view: builderView(),
       crumbs: [
-        { label: 'Estúdio', path: '/' },
+        { label: 'Início', path: '/' },
         { label: 'Meus agentes', path: '/studio' },
         { label: agent.name || 'Agente sem nome' },
       ],
@@ -113,12 +119,13 @@ function resolveRoute(route) {
   }
 
   if (route.name === 'home') {
-    return { view: homeView(), crumbs: [{ label: 'Estúdio' }] }
+    // No crumb on the home page: it would repeat the brand link beside it.
+    return { view: homeView(), crumbs: [] }
   }
 
   return {
     view: notFoundView('Página não encontrada', 'O endereço acessado não existe no My Agent Studio.'),
-    crumbs: [{ label: 'Estúdio', path: '/' }, { label: 'Não encontrado' }],
+    crumbs: [{ label: 'Início', path: '/' }, { label: 'Não encontrado' }],
   }
 }
 

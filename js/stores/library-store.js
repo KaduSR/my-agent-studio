@@ -12,6 +12,7 @@ import { readJSON, writeJSON, STORAGE_KEYS } from '../lib/storage.js'
 import { logger } from '../lib/logger.js'
 import { trackEvent } from '../lib/analytics.js'
 import { createEmptyAgent, duplicateAgent } from '../agent/defaults.js'
+import { mergeToolCatalogue } from '../agent/tool-catalogue.js'
 
 /**
  * @typedef {Object} LibraryState
@@ -62,7 +63,15 @@ export function reviveAgent(raw) {
       : Array.isArray(record.hardRules)
         ? record.hardRules
         : base.guardRails,
-    tools: Array.isArray(record.tools) && record.tools.length > 0 ? record.tools : base.tools,
+    // Reconciled against the catalogue that ships today, not trusted as written:
+    // an agent saved when there were ten tools has to gain the ones added since,
+    // and it would otherwise never see them.
+    tools: Array.isArray(record.tools) && record.tools.length > 0
+      ? mergeToolCatalogue(record.tools)
+      : base.tools,
+    // Every agent saved before the Knowledge step existed has no such key, and
+    // without this default the step would read `undefined.length` on open.
+    knowledge: Array.isArray(record.knowledge) ? record.knowledge : base.knowledge,
   }
 
   // The legacy key must not survive into the new record, or it would be written
