@@ -69,7 +69,7 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     story:
       'Gepeto não trocou a madeira. Ele pôs uma lanterna na mão do boneco, abriu um livro na frente dele e deixou um caderno no bolso. A voz continuou a mesma, mas agora ela alcança coisas.',
     lesson:
-      'Ferramentas, recuperação e memória são as três adições que fecham as lacunas da chamada crua. Juntas formam o que a Anthropic chama de LLM aumentado, a unidade fundamental de qualquer sistema agêntico. E vale notar: um assistente que roda Python, uma API com function calling, uma aplicação de RAG, tudo isso é LLM aumentado, e tudo isso ainda é uma única chamada. O modelo responde, o sistema devolve, a interação termina.',
+      'Ferramentas, recuperação e memória fecham as lacunas da chamada crua. Juntas formam o que a Anthropic chama de LLM aumentado, a unidade fundamental de qualquer sistema agêntico. Vale notar: um assistente que roda Python, uma API com function calling, uma aplicação de RAG, tudo isso ainda é uma única chamada. O modelo responde, o sistema devolve, a interação termina.',
     blocks: [
       {
         type: 'points',
@@ -78,17 +78,17 @@ export const KEYNOTE_AGENTIC = Object.freeze([
           {
             iconName: 'wrench',
             label: 'Ferramentas',
-            text: 'O modelo pede que o sistema execute uma função definida por você: buscar um pedido, criar um ticket, rodar um script. O detalhe que costuma passar batido é que ele nunca executa nada. Ele emite uma intenção estruturada, e quem executa é o código em volta. É isso que torna o comportamento auditável, e é aí que ficam as decisões de segurança.',
+            text: 'O modelo pede que o sistema execute uma função sua: buscar um pedido, criar um ticket. O detalhe que passa batido é que ele nunca executa nada: emite uma intenção estruturada, e quem executa é o código em volta. É o que torna o comportamento auditável.',
           },
           {
             iconName: 'database',
             label: 'Recuperação',
-            text: 'Injeta no contexto, em tempo de execução, os documentos relevantes para aquela pergunta específica. Resolve o conhecimento que o modelo não tem ou que muda com frequência.',
+            text: 'Injeta no contexto, em tempo de execução, os documentos relevantes para aquela pergunta. Resolve o conhecimento que o modelo não tem ou que muda sempre.',
           },
           {
             iconName: 'hard-drive',
             label: 'Memória',
-            text: 'Qualquer mecanismo que carregue informação de uma chamada para a próxima: histórico de conversa, um arquivo de estado, um resumo condensado. Como o modelo é sem estado, memória é sempre algo que o sistema mantém e reinjeta, não uma propriedade do modelo.',
+            text: 'Qualquer mecanismo que leve informação de uma chamada à próxima: histórico, um arquivo de estado, um resumo. Como o modelo é sem estado, memória é sempre algo que o sistema mantém e reinjeta.',
           },
         ],
       },
@@ -103,17 +103,17 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     story:
       'Antes de o boneco dar o primeiro passo, Gepeto pintou o caminho no chão da oficina e numerou as paradas. O boneco anda bem, e anda exatamente por onde já estava pintado.',
     lesson:
-      'Problemas maiores que uma chamada levam ao encadeamento: uma chamada faz o esboço, outra expande em parágrafos, uma terceira traduz. Esse é o prompt chaining, e ele pertence à família dos workflows. Por trás da variedade, todos compartilham a mesma propriedade decisiva: o caminho e o número de passos são escolhidos por você em tempo de projeto, antes de o modelo ver qualquer entrada. É por isso que workflows são previsíveis, depuráveis, testáveis e mais baratos, e é por isso que a maioria dos sistemas em produção hoje são workflows, não agentes, mesmo quando o material de marketing os chama de agentes.',
+      'Problemas maiores que uma chamada levam ao encadeamento: uma faz o esboço, outra expande, uma terceira traduz. Isso é prompt chaining, e é da família dos workflows. Todos compartilham a propriedade decisiva: o caminho e o número de passos são escolhidos por você em tempo de projeto, antes de o modelo ver qualquer entrada. É o que os torna previsíveis, testáveis e mais baratos, e é por isso que a maioria dos sistemas em produção são workflows, não agentes, mesmo quando o marketing os chama de agentes.',
     blocks: [
       {
         type: 'table',
         caption: 'Os padrões mais comuns da família',
         head: ['Padrão', 'Como funciona'],
         rows: [
-          ['Roteamento', 'Uma classificação inicial decide qual handler especializado trata a entrada.'],
-          ['Paralelização', 'Subtarefas independentes rodam ao mesmo tempo e os resultados são agregados.'],
-          ['Orquestrador-trabalhador', 'Um modelo gerente decompõe a tarefa e delega pedaços a especialistas.'],
-          ['Avaliador-otimizador', 'Uma chamada gera, outra critica, e o ciclo repete até a qualidade ser aceitável.'],
+          ['Roteamento', 'Uma classificação decide qual handler trata a entrada.'],
+          ['Paralelização', 'Subtarefas independentes rodam juntas e são agregadas.'],
+          ['Orquestrador-trabalhador', 'Um gerente decompõe e delega a especialistas.'],
+          ['Avaliador-otimizador', 'Uma gera, outra critica, e repete até passar.'],
         ],
       },
     ],
@@ -127,7 +127,7 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     story:
       'Num certo ponto o boneco tira a cruzeta da mão de Gepeto e passa a puxar os próprios fios. Quem decide que a peça acabou deixa de ser quem escreveu a peça.',
     lesson:
-      'Um agente aparece quando você envolve o LLM aumentado num laço e entrega ao próprio modelo a decisão de quando o laço termina. O laço em si é código banal. O que muda de patamar é a transferência do controle de fluxo: no workflow o desenvolvedor decidiu antes quantos passos existem, no agente o modelo decide durante a execução. Existe quase sempre um teto de iterações, mas o papel dele é ser rede de segurança contra loops infinitos e queima de tokens, não o mecanismo de parada. O sinal primário vem do modelo, e toda a autonomia útil, todo o custo imprevisível e toda a dificuldade de depuração derivam dessa única mudança.',
+      'Um agente aparece quando você envolve o LLM aumentado num laço e entrega ao próprio modelo a decisão de quando ele termina. O laço é código banal; o que muda de patamar é a transferência do controle de fluxo. No workflow o desenvolvedor decidiu antes quantos passos existem, no agente o modelo decide durante. Quase sempre há um teto de iterações, mas ele é rede de segurança contra queima de tokens, não o mecanismo de parada. Toda a autonomia útil e toda a dificuldade de depurar derivam dessa única mudança.',
     blocks: [
       {
         type: 'flow',
@@ -256,7 +256,7 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     story:
       'Um portão na entrada da oficina, um em volta de cada ferramenta na parede e um na porta da rua. Em qualquer um deles, se o boneco tenta passar com uma mentira, o nariz cresce na frente de todo mundo.',
     lesson:
-      'Guardrails não são uma camada de moderação colada por cima no fim do projeto. Eles pertencem à arquitetura, e a posição correta deles é sempre a mesma: todo ponto em que o laço cruza a fronteira com o mundo externo. Ferramentas merecem atenção especial justamente porque são o único ponto em que o laço realmente toca sistemas que importam.',
+      'Guardrails não são uma camada de moderação colada no fim do projeto. Eles pertencem à arquitetura, e a posição deles é sempre a mesma: todo ponto em que o laço cruza a fronteira com o mundo. Ferramentas merecem atenção especial porque são o único ponto em que o laço toca sistemas que importam.',
     blocks: [
       {
         type: 'points',
@@ -265,17 +265,17 @@ export const KEYNOTE_AGENTIC = Object.freeze([
           {
             iconName: 'shield-check',
             label: 'Na entrada',
-            text: 'Antes de o modelo principal ver qualquer coisa é onde se barram tentativas de injeção de prompt, pedidos que violam política e entradas fora do escopo do agente. Um padrão eficiente é usar um modelo pequeno e rápido como filtro, para que o modelo caro só rode quando a entrada passar.',
+            text: 'Antes de o modelo principal ver qualquer coisa: injeção de prompt, pedidos que violam política, entradas fora do escopo. Um modelo pequeno e rápido como filtro faz o caro só rodar quando a entrada passa.',
           },
           {
             iconName: 'lock',
             label: 'Em volta de cada ferramenta',
-            text: 'Antes da execução, pode bloquear a chamada ou substituí-la por uma mensagem de volta ao modelo, e é aqui que você impede um DELETE indevido ou uma transferência de valor não autorizada. Depois da execução, pode reescrever ou bloquear o resultado antes que ele entre no estado da conversa.',
+            text: 'Antes da execução, dá para bloquear a chamada ou devolver uma mensagem ao modelo, e é aqui que se impede um DELETE indevido. Depois, dá para reescrever o resultado antes que ele entre no estado da conversa.',
           },
           {
             iconName: 'alert-triangle',
             label: 'Na saída final',
-            text: 'Depois de o laço decidir terminar e antes de o usuário ver a resposta fica a última camada de política: vazamento de dados sensíveis, afirmações que a empresa não quer fazer em seu nome, promessas que o agente não pode garantir.',
+            text: 'Depois de o laço terminar e antes de o usuário ver a resposta: vazamento de dado sensível, afirmação que a empresa não quer fazer em seu nome, promessa que o agente não pode garantir.',
           },
         ],
       },
@@ -288,9 +288,9 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     eyebrow: 'Quando o portão não decide sozinho',
     title: 'A cruzeta de volta na mão de Gepeto',
     story:
-      'Diante do portão da rua, o boneco para. Ele sabe abrir, tem a chave e ninguém o proibiu. Mesmo assim vira, estende a cruzeta para Gepeto e espera. Quem puxa os fios naquele passo é uma pessoa, e só naquele passo.',
+      'Diante do portão da rua, o boneco para. Ele sabe abrir e ninguém o proibiu. Mesmo assim vira, estende a cruzeta para Gepeto e espera. Naquele passo, e só naquele, quem puxa os fios é uma pessoa.',
     lesson:
-      'Autonomia não é tudo ou nada. Um agente pode decidir sozinho o caminho inteiro e ainda assim parar antes de um punhado de ações, entregar a decisão a uma pessoa e continuar com a resposta dela. É isso que separa um sistema que roda em produção de uma demonstração: não é o modelo acertar sempre, é existir um ponto combinado onde o erro fica barato. A pergunta de projeto não é se o agente é capaz, é o que acontece se ele estiver errado. Onde desfazer é fácil, deixe correr. Onde não dá para desfazer, coloque alguém. Nas Ferramentas deste estúdio essa escolha tem nome e é por ferramenta: Pergunta antes, Usa sozinho e Só leitura.',
+      'Autonomia não é tudo ou nada. Um agente pode decidir o caminho inteiro e ainda assim parar antes de um punhado de ações, entregar a decisão a uma pessoa e seguir com a resposta dela. A pergunta de projeto não é se o agente é capaz, é o que acontece se ele estiver errado. Onde desfazer é fácil, deixe correr; onde não dá, coloque alguém. Nas Ferramentas essa escolha já tem nome, e é por ferramenta.',
     blocks: [
       {
         type: 'points',
@@ -299,17 +299,17 @@ export const KEYNOTE_AGENTIC = Object.freeze([
           {
             iconName: 'lock',
             label: 'Antes do que não se desfaz',
-            text: 'Apagar dados, mover dinheiro, publicar em nome de alguém, escrever para um cliente. O critério não é a importância da ação, é o custo de reverter. Um commit se reverte, um e-mail enviado não.',
+            text: 'Apagar dados, mover dinheiro, escrever para um cliente. O critério não é a importância da ação, é o custo de reverter: um commit se reverte, um e-mail enviado não.',
           },
           {
             iconName: 'circle-help',
             label: 'Quando a confiança cai',
-            text: 'Um agente que sabe dizer que está inseguro pode transformar isso em um pedido de ajuda em vez de um chute. É o mesmo comportamento que a etapa Comportamento chama de "diante da dúvida", e ele só serve se houver para quem perguntar.',
+            text: 'Um agente que sabe dizer que está inseguro pode pedir ajuda em vez de chutar. É o slider "diante da dúvida" da etapa Personalidade, e ele só serve se houver para quem perguntar.',
           },
           {
             iconName: 'clock',
             label: 'Sabendo o que custa',
-            text: 'Cada parada troca velocidade por segurança e transfere trabalho para uma pessoa. Perguntar em tudo devolve o agente à condição de formulário caro; nunca perguntar transfere todo o risco para quem recebe o resultado. O desenho está entre os dois, e é uma decisão de produto, não de modelo.',
+            text: 'Cada parada troca velocidade por segurança. Perguntar em tudo devolve o agente à condição de formulário caro; nunca perguntar joga o risco inteiro em quem recebe o resultado.',
           },
         ],
       },
@@ -324,7 +324,7 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     story:
       'Cada tábua da ponte aguenta bem sozinha. Vinte tábuas em sequência são outra conversa, e as do fim já estão rachadas antes de alguém pisar nelas.',
     lesson:
-      'Confiabilidade por passo se comporta mal quando os passos são encadeados, porque as probabilidades se multiplicam. Isso explica um fenômeno observado: agentes de código funcionaram antes e melhor do que agentes de tarefas abertas. Não é porque programar é mais fácil, é porque testes, compiladores e verificadores de tipo elevam a confiabilidade por passo. Um passo ruim é pego imediatamente e corrigido, o que encurta a cadeia efetiva que precisa dar certo de ponta a ponta. A leitura prática disso é que a melhoria de maior alavancagem num agente costuma não ser um modelo melhor, mas um verificador barato: um teste, uma validação de schema, uma checagem que permita ao laço detectar o passo errado antes que ele contamine todos os seguintes.',
+      'Confiabilidade por passo se comporta mal quando os passos são encadeados, porque as probabilidades se multiplicam. Isso explica por que agentes de código funcionaram antes: não é que programar seja mais fácil, é que teste e compilador elevam a confiabilidade por passo e pegam o erro na hora, encurtando a cadeia que precisa dar certo. A leitura prática é que a maior alavancagem num agente costuma não ser um modelo melhor, e sim um verificador barato.',
     blocks: [
       {
         type: 'meter',
@@ -345,7 +345,7 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     story:
       'A lista pregada na parede antes de a primeira lasca cair. A folha de progresso que fica na bancada de um dia para o outro. E a corda amarrada no pé da mesa, para voltar quando algo dá errado.',
     lesson:
-      'A tentação, quando um agente falha, é esperar o próximo modelo. Um experimento interno compartilhado pela Anthropic mostra por que esse costuma ser o diagnóstico errado: mesmo um modelo de fronteira rodando no Claude Agent SDK não conseguia construir uma aplicação web de qualidade de produção a partir de um prompt de alto nível. A solução foi estrutura, não capacidade. E o padrão vale além desse caso: agentes de longa duração precisam de decomposição imposta de fora, estado persistido fora da janela de contexto e um caminho de recuperação. Sem isso, autonomia prolongada tende a virar caminhada aleatória caríssima.',
+      'A tentação, quando um agente falha, é esperar o próximo modelo. Um experimento da Anthropic mostra por que esse costuma ser o diagnóstico errado: nem um modelo de fronteira construía uma aplicação de produção a partir de um prompt de alto nível. A solução foi estrutura, não capacidade. Agentes de longa duração precisam de decomposição imposta de fora, estado guardado fora da janela e um caminho de recuperação. Sem isso, autonomia prolongada vira caminhada aleatória caríssima.',
     blocks: [
       {
         type: 'points',
@@ -384,7 +384,7 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     story:
       'Na bifurcação, de um lado o trilho pintado e medido, do outro o mar. O mar leva mais longe, e ninguém sabe dizer, antes de sair, quantos dias vai levar.',
     lesson:
-      'O último custo é o mais fácil de evitar e o mais frequentemente ignorado: muitos problemas simplesmente não precisam de um agente. O critério prático é escolher a solução mais simples que resolve o problema e só adicionar complexidade quando ela for necessária, o que às vezes significa não usar sistema agêntico nenhum. Se você consegue enumerar os passos de antemão, você tem um workflow, e forçá-lo a virar agente só adiciona risco. O agente se justifica quando o caminho depende genuinamente do que for descoberto no meio do processo, quando nem você nem o usuário sabem, no início, quantas voltas serão necessárias.',
+      'O último custo é o mais fácil de evitar e o mais ignorado: muitos problemas não precisam de agente. O critério é escolher a solução mais simples que resolve e só adicionar complexidade quando ela for necessária, o que às vezes significa não usar sistema agêntico nenhum. Se você consegue enumerar os passos de antemão, você tem um workflow, e forçá-lo a virar agente só adiciona risco. O agente se justifica quando o caminho depende do que for descoberto no meio.',
     blocks: [
       {
         type: 'compare',
