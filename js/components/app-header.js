@@ -115,7 +115,8 @@ export function appHeader(crumbs) {
           class: 'btn btn-ghost btn-icon',
           'aria-label': 'Como funciona',
           title: 'Como funciona',
-          onclick: openKeynote,
+          // Wrapped so the click event is not read as a track id.
+          onclick: () => openKeynote(),
         },
         icon('life-buoy', { size: 17 })
       ),

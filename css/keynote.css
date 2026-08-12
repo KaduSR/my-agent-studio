@@ -6,13 +6,22 @@
  */
 
 .keynote {
-  width: min(1000px, calc(100vw - 32px));
   /*
-   * A fixed height, like a real slide. Letting it size to content made the
-   * panel jump between the centred bookend slides and the side-by-side ones,
-   * which read as a glitch rather than as a transition.
+   * A fixed size, like a real slide. Letting it size to content made the panel
+   * jump between the centred bookend slides and the side-by-side ones, which read
+   * as a glitch rather than as a transition.
+   *
+   * The size is per track rather than per slide, which keeps that guarantee: no
+   * slide in a track changes it, because a track either has blocks on every slide
+   * or on none. The only resize happens on the way through the menu, where the
+   * whole composition is being rebuilt anyway.
+   *
+   * This is the narrating track's size. Its slides are a figure and two
+   * paragraphs, and giving them the room the agentic track needs would leave them
+   * floating in it.
    */
-  height: min(648px, calc(100vh - 48px));
+  width: min(1080px, calc(100vw - 24px));
+  height: min(760px, calc(100vh - 24px));
   margin: auto;
   padding: 0;
   overflow: hidden;
@@ -23,6 +32,16 @@
   background: var(--surface);
   color: var(--text-primary);
   box-shadow: var(--shadow-lg);
+}
+
+/*
+ * A track whose slides carry blocks. Three columns of content need the width, and
+ * a table or an eight row log next to a lesson needs the height. Sized so nothing
+ * in the deck scrolls at 1024x700 or above.
+ */
+.keynote[data-dense='true'] {
+  width: min(1240px, calc(100vw - 24px));
+  height: min(880px, calc(100vh - 24px));
 }
 
 .keynote::backdrop {
@@ -44,6 +63,39 @@
 .keynote__close:hover {
   color: var(--text-primary);
   background: var(--surface-muted);
+}
+
+/*
+ * The subject's industry name, in the same corner on every slide.
+ *
+ * Monospace because it is a term to be copied into a search box, not prose, and
+ * that is also what keeps it from competing with the gradient title: the reader
+ * can tell at a glance that it belongs to a different register.
+ *
+ * Offset far enough from the right edge to clear the close button, and capped in
+ * width so a two-word term wraps instead of running under it.
+ */
+.keynote__term {
+  position: absolute;
+  top: var(--space-3);
+  right: 52px;
+  z-index: 2;
+  max-width: min(240px, calc(100% - 120px));
+  padding: 5px var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-helper);
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+/* Nothing to name on the track menu, and an empty pill is still a pill. */
+.keynote__term:empty {
+  display: none;
 }
 
 /* -------------------------------- stage -------------------------------- */
@@ -78,6 +130,45 @@
 
 .keynote__stage[data-layout='right'] {
   grid-template-columns: minmax(0, 1fr) auto;
+}
+
+/*
+ * Three columns when the slide has blocks: figure, prose, structure. Stacking
+ * the structure under the prose is what made these slides scroll, and reading a
+ * table after a six line paragraph is worse anyway. Side by side, the argument
+ * and its evidence are visible at once.
+ *
+ * The prose column is the narrower of the two because it is the one with a
+ * comfortable measure to respect; a table just takes what it is given.
+ */
+.keynote__stage[data-layout='left'][data-blocks='true'] {
+  grid-template-columns: auto minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: var(--space-6);
+}
+
+.keynote__stage[data-layout='right'][data-blocks='true'] {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr) auto;
+  gap: var(--space-6);
+}
+
+.keynote__side {
+  min-width: 0;
+}
+
+/*
+ * Track one has no blocks. Without this the empty div would still claim a grid
+ * column and wrap the figure onto a second row.
+ */
+.keynote__side:empty {
+  display: none;
+}
+
+/* The menu is a bookend composition with no figure of its own: the figures are
+   in the cards. */
+.keynote__stage[data-layout='menu'] {
+  display: flex;
+  text-align: center;
+  cursor: default;
 }
 
 /* Placing the art second is what flips the composition. */
@@ -159,6 +250,125 @@
   justify-content: center;
 }
 
+/* -------------------------------- the menu ------------------------------- */
+
+.keynote__menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  /*
+   * Auto margins, not `align-content: center` on the stage. On a narrow screen
+   * the two cards are taller than the stage, and centring overflow puts the
+   * heading above the scroll origin where it cannot be reached. Auto margins
+   * collapse to zero when free space runs out, so the menu centres when it fits
+   * and scrolls normally when it does not.
+   */
+  margin: auto;
+}
+
+.keynote__menu-intro {
+  max-width: 58ch;
+}
+
+.keynote__menu-intro .keynote__lesson {
+  margin-top: var(--space-3);
+}
+
+.keynote__tracks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 780px;
+}
+
+/*
+ * A card, not a list row: the figure is the label. Two of them side by side is
+ * the whole menu, so there is room to let each one be a scene.
+ */
+.keynote__track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    transform var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.keynote__track:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+.keynote__track:focus-visible {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
+}
+
+/*
+ * The card's figure is the FLIP source, so it needs the same origin as the one
+ * on the stage. `.puppet` already sets it; this only has to stop the span from
+ * being an inline box that clips it.
+ */
+.keynote__track-art {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+}
+
+.keynote__track-eyebrow {
+  display: block;
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.keynote__track-title {
+  display: block;
+  font-size: var(--text-section-title);
+  font-weight: var(--weight-section);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.keynote__track-desc {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.keynote__track-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--space-3);
+  font-size: var(--text-helper);
+  color: var(--text-muted);
+}
+
+.keynote__hint {
+  flex: 1;
+  text-align: center;
+  font-size: var(--text-helper);
+  color: var(--text-muted);
+}
+
 /* --------------------------------- nav --------------------------------- */
 
 .keynote__nav {
@@ -172,10 +382,23 @@
   background: var(--surface);
 }
 
+.keynote__nav-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
 .keynote__progress {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+}
+
+/* Which deck this is. With two tracks the counter alone stops being an answer. */
+.keynote__track-label {
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  color: var(--text-secondary);
 }
 
 .keynote__dots {
@@ -208,6 +431,89 @@
 
 /* ------------------------------ responsive ----------------------------- */
 
+/*
+ * Between the full three column composition and the phone stack, what runs out
+ * is width, not height: the figure keeps its 240px while the prose column gets
+ * squeezed, wraps taller, and pushes the slide into a scroll. So the figure gives
+ * width back before anything else does.
+ *
+ * These have to sit above the 860px block. Equal specificity means source order
+ * decides, and both queries match a narrow viewport.
+ */
+@media (max-width: 1200px) {
+  .keynote__art .puppet {
+    width: 196px;
+    height: 236px;
+  }
+
+  .keynote__stage[data-layout='left'][data-blocks='true'],
+  .keynote__stage[data-layout='right'][data-blocks='true'] {
+    gap: var(--space-5);
+  }
+
+  .keynote__stage {
+    padding: var(--space-6) var(--space-6) var(--space-4);
+  }
+}
+
+/*
+ * Below this the three columns stop being three columns: the prose measure drops
+ * under about forty characters and every paragraph grows a line, which costs more
+ * height than the side by side arrangement saved. So it stacks, and from here down
+ * a dense slide is allowed to scroll. That is the honest trade at tablet width.
+ */
+@media (max-width: 1000px) {
+  .keynote__stage,
+  .keynote__stage[data-layout='left'],
+  .keynote__stage[data-layout='right'],
+  .keynote__stage[data-layout='left'][data-blocks='true'],
+  .keynote__stage[data-layout='right'][data-blocks='true'] {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: var(--space-5);
+  }
+
+  .keynote__side {
+    width: 100%;
+  }
+
+  /* On one column the figure always leads. */
+  .keynote__stage[data-layout='right'] .keynote__art {
+    order: 0;
+  }
+}
+
+@media (max-width: 1040px) {
+  .keynote__art .puppet {
+    width: 156px;
+    height: 188px;
+  }
+
+  .keynote__title {
+    font-size: 28px;
+  }
+
+  .keynote__story {
+    font-size: 15px;
+  }
+
+  /* The last of the slack, taken from the gaps and the leading rather than from
+     the words. The lesson is the longest paragraph in the deck, so a tighter
+     line box on it is worth more than a smaller type size would be. */
+  .keynote__story,
+  .keynote__lesson {
+    margin-top: var(--space-3);
+  }
+
+  .keynote__lesson {
+    line-height: var(--leading-normal);
+  }
+
+  .keynote__blocks {
+    gap: var(--space-3);
+  }
+}
+
 @media (max-width: 860px) {
   .keynote {
     height: calc(100vh - 24px);
@@ -216,12 +522,19 @@
 
   .keynote__stage,
   .keynote__stage[data-layout='left'],
-  .keynote__stage[data-layout='right'] {
+  .keynote__stage[data-layout='right'],
+  .keynote__stage[data-layout='left'][data-blocks='true'],
+  .keynote__stage[data-layout='right'][data-blocks='true'] {
     grid-template-columns: minmax(0, 1fr);
     justify-items: center;
     text-align: center;
     gap: var(--space-5);
     padding: var(--space-8) var(--space-5) var(--space-4);
+  }
+
+  /* One column, so the structure goes back to being read after the prose. */
+  .keynote__side {
+    width: 100%;
   }
 
   /* On one column the figure always leads. */
@@ -234,6 +547,16 @@
     height: 202px;
   }
 
+  /* One card above the other, and a smaller figure on each so both fit. */
+  .keynote__tracks {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .keynote__track-art .puppet {
+    width: 104px;
+    height: 125px;
+  }
+
   .keynote__title {
     font-size: 26px;
   }
@@ -243,6 +566,11 @@
   }
 
   .keynote__dots {
+    display: none;
+  }
+
+  /* The footer already carries three groups on this width. */
+  .keynote__track-label {
     display: none;
   }
 }

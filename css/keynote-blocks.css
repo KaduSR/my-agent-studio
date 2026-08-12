@@ -1,0 +1,547 @@
+/*
+ * The keynote's content blocks (js/ui/keynote-blocks.js).
+ *
+ * These sit under the lesson on the agentic track. They are the only place in
+ * the app with a real table, a log and a bar chart, so the rules here are
+ * deliberately narrow: nothing outside `.keynote__blocks` is affected.
+ *
+ * The loops live here rather than in JS on purpose. A CSS animation is silenced
+ * by the global prefers-reduced-motion rule in base.css and holds no reference to
+ * the node it runs on, so a discarded slide cannot keep one alive.
+ */
+
+.keynote__blocks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /*
+   * The centred slide layouts centre everything under them, and a table, a log
+   * or a list of sources cannot survive that. Blocks always read left.
+   */
+  text-align: left;
+}
+
+.knote-caption {
+  margin-bottom: var(--space-2);
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* --------------------------------- points -------------------------------- */
+
+.knote-points {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.knote-point {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+/* The gradient disc is the app's mark for "this is one of a set". */
+.knote-point__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-primary);
+  color: var(--text-on-accent);
+}
+
+.knote-point__body {
+  display: block;
+  min-width: 0;
+}
+
+.knote-point__label {
+  display: block;
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+}
+
+.knote-point__text {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--text-body);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+}
+
+/* --------------------------------- table --------------------------------- */
+
+/* Wide content scrolls inside its own box; the slide never scrolls sideways. */
+.knote-table__scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.knote-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--text-body);
+}
+
+.knote-table th {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-muted);
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.knote-table__cell {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+
+.knote-table__row:first-child .knote-table__cell {
+  border-top: none;
+}
+
+/* The first column names the thing the row is about. */
+.knote-table__cell--lead {
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+/* ---------------------------------- flow --------------------------------- */
+
+.knote-flow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  list-style: none;
+  counter-reset: none;
+}
+
+.knote-flow__step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.knote-flow__chip {
+  display: inline-block;
+  padding: 6px var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-helper);
+  color: var(--text-primary);
+  /* One shared pulse, offset per chip in JS, so the light travels the row. */
+  animation: knote-pulse 1280ms var(--ease-out) infinite;
+}
+
+.knote-flow__arrow {
+  display: inline-flex;
+  color: var(--text-disabled);
+}
+
+.knote-flow__back {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: var(--space-3);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.knote-flow__back .icon {
+  flex: none;
+  margin-top: 3px;
+  color: var(--accent);
+}
+
+@keyframes knote-pulse {
+  0%,
+  70%,
+  100% {
+    border-color: var(--border-default);
+    background: var(--surface);
+  }
+  18% {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+}
+
+/* ---------------------------------- trace -------------------------------- */
+
+.knote-trace {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-inset);
+  overflow: hidden;
+}
+
+.knote-trace__row {
+  display: grid;
+  /* Wide enough for "Resposta final", the longest label, and no wider. */
+  grid-template-columns: 126px minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+}
+
+.knote-trace__row:first-child {
+  border-top: none;
+}
+
+.knote-trace__kind {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.knote-trace__icon {
+  display: inline-flex;
+}
+
+.knote-trace__text {
+  color: var(--text-secondary);
+}
+
+/* Each kind of turn gets its own colour, so the rhythm of the trace is legible
+   before a single word of it is read. */
+.knote-trace__row[data-kind='input'] .knote-trace__kind {
+  color: var(--text-primary);
+}
+
+.knote-trace__row[data-kind='thought'] .knote-trace__kind {
+  color: var(--accent-deep);
+}
+
+.knote-trace__row[data-kind='action'] .knote-trace__kind {
+  color: var(--accent);
+}
+
+.knote-trace__row[data-kind='observation'] .knote-trace__kind {
+  color: var(--warning);
+}
+
+.knote-trace__row[data-kind='final'] {
+  background: var(--success-soft);
+}
+
+.knote-trace__row[data-kind='final'] .knote-trace__kind {
+  color: var(--success);
+}
+
+.knote-trace__row[data-kind='action'] .knote-trace__text {
+  font-family: var(--font-mono);
+  font-size: var(--text-helper);
+}
+
+/* ---------------------------------- meter -------------------------------- */
+
+.knote-meter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+}
+
+.knote-meter__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.knote-meter__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.knote-meter__label {
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+}
+
+.knote-meter__value {
+  font-size: var(--text-section-title);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.knote-meter__track {
+  display: block;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-muted);
+  overflow: hidden;
+}
+
+/* Scaled from the left so the growth reads as filling rather than as sliding. */
+.knote-meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-primary);
+  transform-origin: left center;
+}
+
+.knote-meter__detail {
+  font-size: var(--text-helper);
+  color: var(--text-muted);
+}
+
+/* --------------------------------- compare ------------------------------- */
+
+.knote-compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.knote-compare__column {
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+/* The agent side is the expensive one, and it is marked as such. */
+.knote-compare__column[data-side='right'] {
+  border-color: var(--accent-soft-strong);
+  background: var(--accent-soft);
+}
+
+.knote-compare__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: var(--space-3);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+}
+
+.knote-compare__icon {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.knote-compare__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  list-style: none;
+  font-size: var(--text-body);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.knote-compare__list li {
+  padding-left: var(--space-4);
+  position: relative;
+}
+
+.knote-compare__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+/* --------------------------------- ladder -------------------------------- */
+
+.knote-ladder {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: var(--space-1);
+}
+
+.knote-ladder__rung {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  font-size: var(--text-label);
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+}
+
+/*
+ * Each step is indented past the one below it, so the stack reads as a climb.
+ * Hand-written rather than generated because there are exactly four of them and
+ * the last one carries the gradient.
+ */
+.knote-ladder__rung[data-level='1'] {
+  margin-left: var(--space-4);
+}
+
+.knote-ladder__rung[data-level='2'] {
+  margin-left: var(--space-8);
+}
+
+.knote-ladder__rung[data-level='3'] {
+  margin-left: var(--space-12);
+  border-color: transparent;
+  background: var(--gradient-primary);
+  color: var(--text-on-accent);
+}
+
+.knote-ladder__adds {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: var(--space-4);
+  font-size: var(--text-helper);
+  color: var(--text-muted);
+}
+
+.knote-ladder__adds[data-level='2'] {
+  padding-left: var(--space-8);
+}
+
+.knote-ladder__adds[data-level='3'] {
+  padding-left: var(--space-12);
+}
+
+.knote-ladder__plus {
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+}
+
+/* ---------------------------------- links -------------------------------- */
+
+/*
+ * Two columns, because this block only appears on a closing slide that also has
+ * to fit the call to action. Six sources stacked pushed the buttons below the
+ * fold, and the buttons are the point of the deck.
+ */
+.knote-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  list-style: none;
+}
+
+.knote-link__anchor {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  height: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  text-decoration: none;
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
+}
+
+.knote-link__anchor:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.knote-link__body {
+  display: block;
+  min-width: 0;
+}
+
+.knote-link__label {
+  display: block;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+}
+
+.knote-link__source {
+  display: block;
+  font-size: var(--text-helper);
+  color: var(--text-muted);
+}
+
+.knote-link__go {
+  display: inline-flex;
+  flex: none;
+  color: var(--accent);
+}
+
+/* ------------------------------- responsive ------------------------------ */
+
+@media (max-width: 860px) {
+  .knote-compare,
+  .knote-links {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .knote-trace__row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .knote-ladder__rung[data-level='1'],
+  .knote-ladder__adds[data-level='1'] {
+    margin-left: 0;
+    padding-left: var(--space-3);
+  }
+
+  .knote-ladder__rung[data-level='2'],
+  .knote-ladder__adds[data-level='2'] {
+    margin-left: var(--space-3);
+    padding-left: var(--space-4);
+  }
+
+  .knote-ladder__adds[data-level='3'] {
+    padding-left: var(--space-5);
+  }
+
+  .knote-ladder__rung[data-level='3'] {
+    margin-left: var(--space-5);
+  }
+}

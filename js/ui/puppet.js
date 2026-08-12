@@ -20,14 +20,19 @@
 
 import { s } from '../lib/dom.js'
 import { prefersReducedMotion } from './flip.js'
+import { sceneFor } from './puppet-scenes.js'
 
 /**
  * Every figure the puppet can be, in narrative order.
  *
- * Exported as data, not only as a type, because two separate content files
- * (data/keynote.js and data/glossary.js) name these by string. A typo there
- * would draw the fallback figure silently; the tests compare against this list
- * so it fails loudly instead.
+ * Exported as data, not only as a type, because three separate content files
+ * (data/keynote.js, data/keynote-agentic.js and data/glossary.js) name these by
+ * string. A typo there would draw the fallback figure silently; the tests
+ * compare against this list so it fails loudly instead.
+ *
+ * The second half of the list belongs to the agentic track and is drawn by
+ * ui/puppet-scenes.js. It is spelled out here rather than spread in from that
+ * module so this stays the one place a stage name is declared.
  *
  * @type {ReadonlyArray<PuppetStage>}
  */
@@ -46,12 +51,26 @@ export const PUPPET_STAGES = Object.freeze([
   'memory',
   'export',
   'boy',
+  'stateless',
+  'augmented',
+  'workflow',
+  'loop',
+  'cycle',
+  'decisions',
+  'react',
+  'gates',
+  'chain',
+  'workshop',
+  'crossroads',
+  'arc',
 ])
 
 /**
  * @typedef {'wood' | 'brain' | 'tokens' | 'named' | 'purpose' | 'soul'
  *   | 'personality' | 'guardrails' | 'harness' | 'tools' | 'knowledge'
- *   | 'memory' | 'export' | 'boy'} PuppetStage
+ *   | 'memory' | 'export' | 'boy' | 'stateless' | 'augmented' | 'workflow'
+ *   | 'loop' | 'cycle' | 'decisions' | 'react' | 'gates' | 'chain'
+ *   | 'workshop' | 'crossroads' | 'arc'} PuppetStage
  */
 
 const WOOD_DARK = '#8A5524'
@@ -64,11 +83,31 @@ const SPARK = '#4C6FE8'
 /** Stages where the figure is flesh rather than timber. */
 const REAL_BOY = new Set(['export', 'boy'])
 
-/** Stages drawn before Gepeto put a hat on him. */
-const BARE_HEAD = new Set(['wood', 'brain'])
+/**
+ * Stages drawn before Gepeto put a hat on him. The two agentic ones are here
+ * for the same reason as `wood` and `brain`: they are about the raw model, and a
+ * hat would say someone had already started shaping it.
+ */
+const BARE_HEAD = new Set(['wood', 'brain', 'stateless', 'augmented'])
 
-/** Stages where the marionette is still on strings. */
-const ON_STRINGS = new Set(['wood', 'brain', 'tokens', 'named', 'purpose', 'harness'])
+/**
+ * Stages where the marionette is still on strings.
+ *
+ * The agentic track hangs him for its first three scenes and then never again:
+ * `loop` is where he takes the cross himself, and from there the strings would
+ * contradict the story. `workflow` and `loop` draw their own rigs in
+ * ui/puppet-scenes.js, so they are deliberately absent here.
+ */
+const ON_STRINGS = new Set([
+  'wood',
+  'brain',
+  'tokens',
+  'named',
+  'purpose',
+  'harness',
+  'stateless',
+  'augmented',
+])
 
 /**
  * Every idle animation started for a figure, so the keynote can cancel them all
@@ -78,15 +117,19 @@ const ON_STRINGS = new Set(['wood', 'brain', 'tokens', 'named', 'purpose', 'harn
  */
 const running = new WeakMap()
 
+/** Stages where the lie is showing. */
+const LYING = new Set(['guardrails', 'gates'])
+
 /**
  * The nose length per stage. Growing it on the Guard Rails slide is the whole
- * point of the analogy: a limit you cannot hide.
+ * point of the analogy: a limit you cannot hide. The agentic track reuses it on
+ * `gates`, where the same image has to carry three checkpoints instead of one.
  * @param {PuppetStage} stage
  * @returns {number}
  */
 function noseLength(stage) {
   if (stage === 'wood') return 0
-  if (stage === 'guardrails') return 62
+  if (LYING.has(stage)) return 62
   return 14
 }
 
@@ -123,10 +166,14 @@ function pivot(origin, children) {
  * @typedef {Object} IdleOptions
  * @property {number} duration Milliseconds for one half-cycle.
  * @property {number} [delay] Negative values start the loop mid-flight.
+ * @property {PlaybackDirection} [direction] Defaults to alternate. The agentic
+ *   scenes need `normal` for anything that travels: a pulse that runs the loop
+ *   backwards on every other pass reads as indecision, not as a cycle.
+ * @property {string} [easing] Defaults to ease-in-out.
  */
 
 /**
- * Register one looping animation, alternating between two poses.
+ * Register one looping animation, by default alternating between two poses.
  * @param {Element} host The figure the animation belongs to.
  * @param {Element | null} target
  * @param {Keyframe[]} keyframes
@@ -140,8 +187,8 @@ function idle(host, target, keyframes, options) {
     duration: options.duration,
     delay: options.delay ?? 0,
     iterations: Infinity,
-    direction: 'alternate',
-    easing: 'ease-in-out',
+    direction: options.direction ?? 'alternate',
+    easing: options.easing ?? 'ease-in-out',
   })
 
   const list = running.get(host)
@@ -464,6 +511,29 @@ export function puppet(stage, size = 320) {
     book,
     openBook,
   ])
+  figure.dataset.role = 'figure'
+
+  /*
+   * The agentic scenery, if this stage has any.
+   *
+   * `figureTransform` is a static wrapper rather than a transform on `figure`
+   * itself, because `figure` already carries the idle bob and the two would
+   * overwrite each other. Nesting works: `transform-box: view-box` resolves
+   * against the viewBox, not against the ancestor chain, so the bob still
+   * pivots at the feet in local coordinates and the wrapper only maps the
+   * result.
+   */
+  const scene = sceneFor(stage, {
+    colors,
+    gradientId,
+    wood: WOOD,
+    woodDark: WOOD_DARK,
+    spark: SPARK,
+  })
+
+  const body = scene?.figureTransform
+    ? s('g', { transform: scene.figureTransform }, figure)
+    : figure
 
   const svg = s(
     'svg',
@@ -491,7 +561,9 @@ export function puppet(stage, size = 320) {
       )
     ),
     strings,
-    figure,
+    ...(scene?.behind ?? []),
+    body,
+    ...(scene?.front ?? []),
     star
   )
 
@@ -617,12 +689,17 @@ export function puppet(stage, size = 320) {
 
   // The lie itself: the nose shoots out once, with a small overshoot, and stays
   // out. It settles on its natural length, so nothing depends on fill modes.
-  if (stage === 'guardrails' && typeof noseGroup.animate === 'function') {
+  if (LYING.has(stage) && typeof noseGroup.animate === 'function') {
     noseGroup.animate([{ transform: 'scaleX(0.14)' }, { transform: 'scaleX(1)' }], {
       duration: 520,
       easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
       fill: 'backwards',
     })
+  }
+
+  // The scenery's own loops, registered here so stopPuppet() reaches them too.
+  for (const { target, keyframes, options } of scene?.motions ?? []) {
+    idle(svg, target, keyframes, options)
   }
 
   return svg

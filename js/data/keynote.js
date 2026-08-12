@@ -29,13 +29,22 @@
  * @property {string} title
  * @property {string} story The analogy.
  * @property {string} lesson What it means for the user's agent.
+ * @property {string} term The industry name for this slide's subject, shown as a
+ *   tag in the corner of every slide. Required, not optional: the whole value of
+ *   it is being there every time, so that someone who followed the story always
+ *   leaves with the word they would have to search for. The copy stays in
+ *   Portuguese and explains the thing; the tag is what it is called out there.
  * @property {import('../agent/types.js').StepId} [step] The step this explains.
+ * @property {ReadonlyArray<import('../ui/keynote-blocks.js').KeynoteBlock>} [blocks]
+ *   Structured content under the lesson. This track has none: it narrates, and a
+ *   table would interrupt it. The agentic track argues, and argues in tables.
  */
 
 /** @type {ReadonlyArray<KeynoteSlide>} */
 export const KEYNOTE = Object.freeze([
   {
     id: 'intro',
+    term: 'AI agent',
     stage: 'wood',
     eyebrow: 'Antes de começar',
     title: 'O que é um agente?',
@@ -46,6 +55,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'brain',
+    term: 'LLM',
     stage: 'brain',
     eyebrow: 'A matéria-prima',
     title: 'A madeira já falava',
@@ -56,6 +66,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'identity',
+    term: 'Persona',
     step: 'identity',
     stage: 'named',
     eyebrow: 'Etapa 1',
@@ -66,6 +77,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'objective',
+    term: 'Goal',
     step: 'objective',
     stage: 'purpose',
     eyebrow: 'Etapa 2',
@@ -76,6 +88,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'soul',
+    term: 'System prompt',
     step: 'soul',
     stage: 'soul',
     eyebrow: 'Etapa 3',
@@ -87,6 +100,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'personality',
+    term: 'Tone & style',
     step: 'personality',
     stage: 'personality',
     eyebrow: 'Etapa 4',
@@ -98,6 +112,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'guardrails',
+    term: 'Guardrails',
     step: 'rules',
     stage: 'guardrails',
     eyebrow: 'Etapa 5',
@@ -109,6 +124,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'tools',
+    term: 'Tool use',
     step: 'tools',
     stage: 'tools',
     eyebrow: 'Etapa 6',
@@ -120,6 +136,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'knowledge',
+    term: 'RAG',
     step: 'knowledge',
     stage: 'knowledge',
     eyebrow: 'Etapa 7',
@@ -131,6 +148,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'memory',
+    term: 'Memory',
     step: 'memory',
     stage: 'memory',
     eyebrow: 'Etapa 8',
@@ -141,6 +159,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'export',
+    term: 'Agent spec',
     step: 'export',
     stage: 'export',
     eyebrow: 'Etapa 9',
@@ -152,6 +171,7 @@ export const KEYNOTE = Object.freeze([
   },
   {
     id: 'close',
+    term: 'Agent design',
     stage: 'boy',
     eyebrow: 'É a sua vez',
     title: 'Agora esculpe o seu',
