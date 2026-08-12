@@ -49,6 +49,15 @@ export function matchRoute(path) {
   const edit = /^\/studio\/([^/]+)$/.exec(path)
   if (edit) return { name: 'edit', params: { id: decodeURIComponent(edit[1]) } }
 
+  if (path === '/times') return { name: 'teams', params: {} }
+  if (path === '/times/new') return { name: 'team-new', params: {} }
+
+  // `new` is checked first and is a reserved segment here for the same reason it
+  // is under /studio, so the two features have one rule between them instead of
+  // two that can drift.
+  const team = /^\/times\/([^/]+)$/.exec(path)
+  if (team) return { name: 'team', params: { id: decodeURIComponent(team[1]) } }
+
   return { name: 'not-found', params: {} }
 }
 

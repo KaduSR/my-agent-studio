@@ -13,8 +13,12 @@ import { appHeader } from './components/app-header.js'
 import { homeView } from './views/home.js'
 import { libraryView } from './views/library.js'
 import { builderView } from './views/builder.js'
+import { teamsView } from './views/teams.js'
+import { teamView } from './views/team.js'
 import { loadAgent } from './stores/builder-store.js'
 import { getAgent, loadLibrary, reviveAgent } from './stores/library-store.js'
+import { getTeam, loadTeams, saveTeam } from './stores/teams-store.js'
+import { createEmptyTeam } from './team/defaults.js'
 import { takePendingAgent } from './stores/pending-agent.js'
 import { setPersisted, startAutosave } from './stores/autosave.js'
 import { createAgentFromTemplate, createEmptyAgent } from './agent/defaults.js'
@@ -118,6 +122,60 @@ function resolveRoute(route) {
     }
   }
 
+  if (route.name === 'teams') {
+    return {
+      view: teamsView(),
+      crumbs: [{ label: 'Início', path: '/' }, { label: 'Times de agentes' }],
+    }
+  }
+
+  if (route.name === 'team-new') {
+    const team = createEmptyTeam()
+    saveTeam(team)
+    trackEvent('team_created', {})
+    /*
+     * The team earns its permanent URL immediately. history.replaceState fires no
+     * hashchange, so this does not re-enter renderRoute. A team is a container
+     * the user asked for from a list that already has a delete action, so it does
+     * not need the draft-and-promote dance an agent gets.
+     */
+    replacePath(`/times/${team.id}`)
+    return {
+      view: teamView(team.id),
+      crumbs: [
+        { label: 'Início', path: '/' },
+        { label: 'Times de agentes', path: '/times' },
+        { label: 'Novo time' },
+      ],
+    }
+  }
+
+  if (route.name === 'team') {
+    const team = getTeam(route.params.id)
+    if (!team) {
+      return {
+        view: notFoundView(
+          'Time não encontrado',
+          'Ele pode ter sido excluído, ou foi criado em outro navegador.'
+        ),
+        crumbs: [
+          { label: 'Início', path: '/' },
+          { label: 'Times de agentes', path: '/times' },
+          { label: 'Não encontrado' },
+        ],
+      }
+    }
+
+    return {
+      view: teamView(team.id),
+      crumbs: [
+        { label: 'Início', path: '/' },
+        { label: 'Times de agentes', path: '/times' },
+        { label: team.name.trim() || 'Time sem nome' },
+      ],
+    }
+  }
+
   if (route.name === 'home') {
     // No crumb on the home page: it would repeat the brand link beside it.
     return { view: homeView(), crumbs: [] }
@@ -176,6 +234,9 @@ function renderRoute(route) {
 
 function start() {
   loadLibrary()
+  // After the library, deliberately: a team is a seating chart over saved
+  // agents, so the agents have to exist before the first office renders.
+  loadTeams()
   registerPaletteShortcut()
 
   startAutosave({

@@ -1335,6 +1335,17 @@
   margin-top: var(--space-6);
 }
 
+/*
+ * The row of ghost buttons takes the whole width, so it always falls to a line
+ * of its own instead of wrapping wherever the first row happens to run out.
+ */
+.hero__actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  flex-basis: 100%;
+}
+
 .hero__privacy {
   display: flex;
   align-items: center;
@@ -1439,6 +1450,7 @@
   }
 
   .hero__actions,
+  .hero__actions-row,
   .hero__privacy {
     justify-content: center;
   }
@@ -1686,6 +1698,8 @@
 .step-view,
 .home,
 .library,
+.teams,
+.team-office,
 .not-found {
   animation: view-enter var(--duration-enter) var(--ease-out);
 }

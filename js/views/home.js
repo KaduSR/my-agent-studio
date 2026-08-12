@@ -140,20 +140,38 @@ export function homeView() {
             {
               type: 'button',
               class: 'btn btn-secondary',
-              onclick: openKeynote,
+              // Wrapped, not passed by reference: the handler receives the click
+              // event, and openKeynote reads its first argument as a track id.
+              onclick: () => openKeynote(),
             },
             icon('sparkles', { size: 16 }),
             'Como funciona?'
           ),
+          // The two ways in to what already exists, on their own line: the first
+          // row is what to do next, this one is where things are.
           h(
-            'button',
-            {
-              type: 'button',
-              class: 'btn btn-ghost',
-              onclick: () => navigate('/studio'),
-            },
-            icon('folder', { size: 16 }),
-            'Meus agentes'
+            'div',
+            { class: 'hero__actions-row' },
+            h(
+              'button',
+              {
+                type: 'button',
+                class: 'btn btn-ghost',
+                onclick: () => navigate('/studio'),
+              },
+              icon('folder', { size: 16 }),
+              'Meus agentes'
+            ),
+            h(
+              'button',
+              {
+                type: 'button',
+                class: 'btn btn-ghost',
+                onclick: () => navigate('/times'),
+              },
+              icon('handshake', { size: 16 }),
+              'Times de agentes'
+            )
           )
         ),
         h(

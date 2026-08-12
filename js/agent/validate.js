@@ -31,6 +31,13 @@ export const LIMITS = Object.freeze({
   maxTones: MAX_TONES,
   maxTraits: MAX_TRAITS,
   maxRules: 40,
+  // Team fields live here with every other field length, so the team screen gets
+  // textField's counter and aria-invalid for free instead of a second copy of
+  // that plumbing. The team's structural ceiling is in team/defaults.js.
+  teamNameMin: 2,
+  teamNameMax: 80,
+  teamObjectiveMax: 500,
+  teamInstructionMax: 240,
 })
 
 /**
@@ -49,7 +56,8 @@ function asText(value) {
 /**
  * Validate a single field in isolation — used by inputs as the user types.
  * @param {'name' | 'description' | 'objective' | 'rule' | 'soulField' | 'toolPurpose'
- *   | 'knowledgeTitle' | 'knowledgeContent'} field
+ *   | 'knowledgeTitle' | 'knowledgeContent' | 'teamName' | 'teamObjective'
+ *   | 'teamInstruction'} field
  * @param {string} value
  * @returns {string | null} An error message, or null when valid.
  */
@@ -98,6 +106,22 @@ export function validateField(field, value) {
       if (text.length === 0) return 'Escreva o conteúdo do documento.'
       if (text.length > LIMITS.knowledgeContentMax)
         return `Use no máximo ${LIMITS.knowledgeContentMax} caracteres.`
+      return null
+
+    case 'teamName':
+      if (text.length === 0) return 'Dê um nome ao time.'
+      if (text.length < LIMITS.teamNameMin) return `Use pelo menos ${LIMITS.teamNameMin} caracteres.`
+      if (text.length > LIMITS.teamNameMax) return `Use no máximo ${LIMITS.teamNameMax} caracteres.`
+      return null
+
+    case 'teamObjective':
+      if (text.length > LIMITS.teamObjectiveMax)
+        return `Use no máximo ${LIMITS.teamObjectiveMax} caracteres.`
+      return null
+
+    case 'teamInstruction':
+      if (text.length > LIMITS.teamInstructionMax)
+        return `Use no máximo ${LIMITS.teamInstructionMax} caracteres.`
       return null
 
     default:

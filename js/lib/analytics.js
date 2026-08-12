@@ -19,7 +19,10 @@ import { logger } from './logger.js'
  *   | 'zip_exported'
  *   | 'agent_duplicated'
  *   | 'agent_deleted'
- *   | 'draft_restored'} AnalyticsEvent
+ *   | 'draft_restored'
+ *   | 'team_created'
+ *   | 'team_deleted'
+ *   | 'team_exported'} AnalyticsEvent
  */
 
 /** @type {((event: AnalyticsEvent, payload: Record<string, unknown>) => void) | null} */

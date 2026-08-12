@@ -1,13 +1,17 @@
 import { expect, test } from '@playwright/test'
 import { KEYNOTE } from '../../js/data/keynote.js'
+import { KEYNOTE_AGENTIC } from '../../js/data/keynote-agentic.js'
 import { GLOSSARY } from '../../js/data/glossary.js'
+import { TEMPLATES } from '../../js/data/templates.js'
 
 /*
  * The counters are derived from the content, not spelled out: adding a slide or a
  * term is a routine edit and should not need three literals updated with it.
  */
 const SLIDES = KEYNOTE.length
+const AGENTIC_SLIDES = KEYNOTE_AGENTIC.length
 const TERMS = GLOSSARY.length
+const MODELS = TEMPLATES.length
 
 /*
  * Each test gets a fresh browser context, so localStorage starts empty and
@@ -37,6 +41,17 @@ const tone = (page, name) =>
  */
 const trait = (page, name) =>
   page.locator('.chip-row').getByRole('checkbox', { name, exact: true })
+
+/**
+ * The keynote opens on a menu of tracks, so every deck test starts by picking
+ * one. Scoped to the card so the title inside the deck cannot match instead.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} title
+ */
+const openTrack = async (page, title) => {
+  await page.getByRole('button', { name: 'Como funciona?' }).click()
+  await page.locator('.keynote__track', { hasText: title }).click()
+}
 
 test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
   page,
@@ -437,7 +452,7 @@ test('the gallery deals every model out in pages', async ({ page }) => {
   await expect(gallery.getByRole('button', { name: 'Modelos anteriores' })).toBeDisabled()
 
   // Every template is present, six to a page.
-  await expect(gallery.locator('.template-card')).toHaveCount(35)
+  await expect(gallery.locator('.template-card')).toHaveCount(MODELS)
 
   await page.keyboard.press('ArrowRight')
   await expect(page.locator('.gallery__counter')).toHaveText('2 / 6')
@@ -610,7 +625,7 @@ test('a broken file is refused with a readable reason', async ({ page }) => {
 
 test('the keynote runs end to end from both entry points', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Como funciona?' }).click()
+  await openTrack(page, 'Meu primeiro agente')
 
   const keynote = page.locator('dialog.keynote')
   await expect(keynote).toBeVisible()
@@ -648,15 +663,19 @@ test('the keynote runs end to end from both entry points', async ({ page }) => {
   await page.goto('/#/studio/new')
   await page.getByRole('button', { name: 'Como funciona' }).click()
   await expect(page.locator('dialog.keynote')).toBeVisible()
+  await expect(page.locator('.keynote__track')).toHaveCount(2)
 })
 
 test('the keynote explains Guard Rails with the nose that grows', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Como funciona?' }).click()
+  await openTrack(page, 'Meu primeiro agente')
   for (let i = 0; i < 6; i += 1) await page.keyboard.press('ArrowRight')
 
   await expect(page.locator('.keynote__title')).toHaveText('Guard Rails')
   await expect(page.locator('.keynote__story')).toContainText('o nariz crescia')
+  // The tag is on the first track too: the story stays Pinocchio, the corner
+  // always says what the industry calls it.
+  await expect(page.locator('.keynote__term')).toHaveText('Guardrails')
 
   // The drawing has to change too, not just the words: the nose wedge is
   // markedly longer on this slide than on any other.
@@ -724,14 +743,14 @@ test('the wiki explains the vocabulary with the same puppet', async ({ page }) =
 
 test('the puppet is alive on every slide, not only on the ones with props', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Como funciona?' }).click()
+  await openTrack(page, 'Meu primeiro agente')
   await page.waitForTimeout(500)
 
   // The figure group carries the idle bob. Reading its computed transform twice
   // is what separates "has an animation" from "is actually moving".
   const pose = () =>
     page.evaluate(() => {
-      const figure = document.querySelector('.puppet > g')
+      const figure = document.querySelector('.keynote__art [data-role="figure"]')
       return figure ? getComputedStyle(figure).transform : 'none'
     })
 
@@ -750,12 +769,203 @@ test('the puppet is alive on every slide, not only on the ones with props', asyn
 
 test('the closing slide leads into the builder', async ({ page }) => {
   await page.goto('/')
-  await page.getByRole('button', { name: 'Como funciona?' }).click()
+  await openTrack(page, 'Meu primeiro agente')
   await page.keyboard.press('End')
 
   await page.getByRole('button', { name: 'Criar meu agente' }).click()
   await expect(page.locator('dialog.keynote')).toHaveCount(0)
   await expect(page.getByRole('heading', { name: 'Como seu agente se chama?' })).toBeVisible()
+})
+
+test('the keynote menu offers two tracks, each with a living figure', async ({ page }) => {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Como funciona?' }).click()
+
+  const keynote = page.locator('dialog.keynote')
+  await expect(keynote).toBeVisible()
+  await expect(page.locator('.keynote__title')).toHaveText('Duas trilhas')
+  await expect(page.locator('.keynote__hint')).toContainText('Escolha uma trilha')
+  // Two decks is a choice, not a subject, so there is nothing to name yet.
+  await expect(page.locator('.keynote__term')).toBeEmpty()
+
+  const cards = page.locator('.keynote__track')
+  await expect(cards).toHaveCount(2)
+  await expect(cards.nth(0)).toContainText('Meu primeiro agente')
+  await expect(cards.nth(0)).toContainText(`${SLIDES} slides`)
+  await expect(cards.nth(1)).toContainText('Sistemas agênticos')
+  await expect(cards.nth(1)).toContainText(`${AGENTIC_SLIDES} slides`)
+
+  // The card figures are the FLIP source for entering a track, so they have to
+  // be real puppets rather than static thumbnails.
+  await page.waitForTimeout(400)
+  const poses = () =>
+    page.evaluate(() =>
+      [...document.querySelectorAll('.keynote__track [data-role="figure"]')].map(
+        (figure) => getComputedStyle(figure).transform
+      )
+    )
+
+  const before = await poses()
+  expect(before).toHaveLength(2)
+  expect(before).not.toContain('none')
+  await page.waitForTimeout(240)
+  expect(await poses()).not.toEqual(before)
+
+  // Arrows are a roving focus here, not navigation.
+  await cards.nth(0).focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(cards.nth(1)).toBeFocused()
+  await page.keyboard.press('ArrowLeft')
+  await expect(cards.nth(0)).toBeFocused()
+})
+
+test('the agentic track runs end to end and comes back to the menu', async ({ page }) => {
+  await page.goto('/')
+  await openTrack(page, 'Sistemas agênticos')
+
+  await expect(page.locator('.keynote__title')).toHaveText('A madeira que fala e esquece')
+  await expect(page.locator('.keynote__track-label')).toHaveText('Sistemas agênticos')
+  await expect(page.locator('.keynote__counter')).toHaveText(`1 / ${AGENTIC_SLIDES}`)
+  await expect(page.locator('.keynote__term')).toHaveText('Stateless LLM')
+
+  // The turn the whole track is built around: he takes the control cross.
+  for (let i = 0; i < 3; i += 1) await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.keynote__title')).toHaveText('Quando ele pega a cruzeta')
+  await expect(page.locator('.keynote__lesson')).toContainText('controle de fluxo')
+  await expect(page.locator('.keynote__term')).toHaveText('Agent loop')
+
+  await page.keyboard.press('End')
+  await expect(page.locator('.keynote__counter')).toHaveText(
+    `${AGENTIC_SLIDES} / ${AGENTIC_SLIDES}`
+  )
+  await expect(page.locator('.keynote__title')).toHaveText('De onde isso vem')
+  await expect(page.getByRole('button', { name: 'Próximo slide' })).toBeDisabled()
+
+  // Sources open away from the app rather than swallowing the click.
+  const source = page.locator('.knote-link__anchor').first()
+  await expect(source).toHaveAttribute('target', '_blank')
+  await expect(source).toContainText('ByteByteGo')
+
+  // Back to the menu, then into the other track: the two are siblings, not a
+  // sequence.
+  await page.getByRole('button', { name: 'Voltar para as trilhas' }).click()
+  await expect(page.locator('.keynote__title')).toHaveText('Duas trilhas')
+  await page.locator('.keynote__track', { hasText: 'Meu primeiro agente' }).click()
+  await expect(page.locator('.keynote__title')).toHaveText('O que é um agente?')
+  await expect(page.locator('.keynote__counter')).toHaveText(`1 / ${SLIDES}`)
+})
+
+test('the agentic slides carry their tables, their trace and their bars', async ({ page }) => {
+  await page.goto('/')
+  await openTrack(page, 'Sistemas agênticos')
+
+  // The four workflow patterns, as the app's only real table.
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.keynote__title')).toHaveText('O trilho pintado no chão')
+  await expect(page.locator('.knote-table tbody tr')).toHaveCount(4)
+  await expect(page.locator('.knote-table')).toContainText('Orquestrador-trabalhador')
+
+  // ReAct, as a log that alternates reasoning and action.
+  for (let i = 0; i < 4; i += 1) await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.keynote__title')).toHaveText('O diário do Grilo Falante')
+  await expect(page.locator('.knote-trace__row')).toHaveCount(8)
+  await expect(page.locator('.knote-trace__row[data-kind="observation"]')).toHaveCount(2)
+  await expect(page.locator('.knote-trace__row[data-kind="final"]')).toHaveCount(1)
+
+  // Compounding error, as the drop between two bars.
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.keynote__title')).toHaveText('A ponte de tábuas')
+  await expect(page.locator('.knote-meter__value').nth(0)).toHaveText('60%')
+  await expect(page.locator('.knote-meter__value').nth(1)).toHaveText('36%')
+
+  // The bars are grown, not painted at their final width.
+  await page.waitForTimeout(1400)
+  const widths = await page.evaluate(() =>
+    [...document.querySelectorAll('.knote-meter__fill')].map((fill) =>
+      Math.round(fill.getBoundingClientRect().width)
+    )
+  )
+  expect(widths[0]).toBeGreaterThan(widths[1])
+
+  // Workflow against agent, side by side.
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.keynote__title')).toHaveText('Trilho ou mar aberto')
+  await expect(page.locator('.knote-compare__column')).toHaveCount(2)
+
+  // And the arc, with the agent on the top rung.
+  await page.keyboard.press('ArrowRight')
+  await expect(page.locator('.knote-ladder__rung')).toHaveCount(4)
+  await expect(page.locator('.knote-ladder__rung[data-level="3"]')).toHaveText('Agente')
+})
+
+/**
+ * A slide that has to be scrolled is not a slide.
+ *
+ * This is the test that keeps it true, because the failure mode is editorial
+ * rather than structural: nothing breaks when a lesson gains two sentences, the
+ * deck just quietly starts scrolling. The viewport here is the smallest size the
+ * three column composition is designed to hold, so passing at 1024x700 means
+ * passing on anything a laptop has.
+ */
+test('no slide in either track has to be scrolled', async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 700 })
+
+  const overflow = () =>
+    page.evaluate(() => {
+      const stage = document.querySelector('.keynote__stage')
+      return stage ? stage.scrollHeight - stage.clientHeight : 0
+    })
+
+  const tracks = [
+    { name: 'Meu primeiro agente', count: SLIDES },
+    { name: 'Sistemas agênticos', count: AGENTIC_SLIDES },
+  ]
+
+  for (const { name, count } of tracks) {
+    await page.goto('/')
+    await openTrack(page, name)
+
+    for (let slide = 1; slide <= count; slide += 1) {
+      const title = await page.locator('.keynote__title').textContent()
+      // One pixel of slack for sub-pixel line box rounding.
+      expect(await overflow(), `${name} ${slide}: ${title}`).toBeLessThanOrEqual(1)
+      if (slide < count) await page.keyboard.press('ArrowRight')
+    }
+  }
+})
+
+test('the puppet is alive on every slide of the agentic track too', async ({ page }) => {
+  await page.goto('/')
+  await openTrack(page, 'Sistemas agênticos')
+  await page.waitForTimeout(500)
+
+  /*
+   * Several agentic scenes wrap the body in a static transform to make room for
+   * the scenery, so `.puppet > g` is no longer reliably the animated group. The
+   * figure marks itself instead.
+   */
+  const pose = () =>
+    page.evaluate(() => {
+      const figure = document.querySelector('.keynote__art [data-role="figure"]')
+      return figure ? getComputedStyle(figure).transform : 'none'
+    })
+
+  for (let slide = 1; slide <= AGENTIC_SLIDES; slide += 1) {
+    const before = await pose()
+    await page.waitForTimeout(240)
+    const after = await pose()
+
+    expect(before, `slide ${slide} has no transform`).not.toBe('none')
+    expect(after, `slide ${slide} is frozen`).not.toBe(before)
+
+    if (slide < AGENTIC_SLIDES) {
+      await page.keyboard.press('ArrowRight')
+      await page.waitForTimeout(260)
+    }
+  }
 })
 
 test('the export says Guard Rails, not Hard Rules', async ({ page, context }) => {

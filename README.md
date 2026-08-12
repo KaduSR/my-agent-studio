@@ -83,7 +83,8 @@ js/
   ui/                 Primitivas: cards, chips, slider, toast, dialog, paleta
   components/         Header, sidebar, preview, regras ordenáveis, cards
   steps/              As nove etapas
-  views/              Home, biblioteca, builder
+  team/               Modelo do time, defaults, Markdown, exportação
+  views/              Home, biblioteca, builder, times, escritório
 tests/                unit · component · e2e
 ```
 
@@ -99,7 +100,7 @@ divergir do que será exportado.
 **Criar novo agente** pergunta por onde começar:
 
 - **Do zero**, com as nove etapas em branco.
-- **A partir de um modelo**: são 35 agentes completos, com objetivo,
+- **A partir de um modelo**: são 36 agentes completos, com objetivo,
   personalidade, Guard Rails, ferramentas e memória já preenchidos, do revisor de
   código ao roteirista de stories. A home mostra seis; **Ver todos os modelos**
   abre a galeria, paginada de seis em seis, com setas, teclado, arrastar e os
@@ -181,14 +182,160 @@ um `config.json` ou um agente cru, coagindo cada campo contra os catálogos do
 app (`js/agent/transfer.js`). O botão fica disponível mesmo com o export ainda
 bloqueado: um agente pela metade também merece backup.
 
+## Times de agentes
+
+Depois do segundo agente vem sempre a mesma pergunta: quem faz o quê, e quem
+coordena. **Times de agentes** (`#/times`) é a tela onde ela é respondida. Um
+time tem nome, objetivo e um escritório: os agentes que você já criou sentam em
+mesas, cada um com o seu boneco pulando no próprio compasso sobre o piso
+quadriculado. Os agentes entram pelo banco de **Agentes recentes**, logo abaixo
+da sala, a um clique.
+
+São **quatro formas de trabalhar**, e são as quatro que a trilha *Sistemas
+agênticos* ensina:
+
+| Modo | O que é |
+| --- | --- |
+| **Ordens diretas** | Você decide quem faz o quê antes de começar, e cada mesa ganha a sua ordem. É a paralelização. |
+| **Linha de montagem** | A saída de cada mesa é a entrada da próxima, na ordem das mesas. É o encadeamento. |
+| **Dupla de revisão** | Uns produzem, um avalia e devolve, e roda de novo até passar. É o avaliador-otimizador. |
+| **Time com gerente** | Um agente recebe o objetivo, divide o trabalho e responde pelo resultado. É o orquestrador-trabalhador. |
+
+A diferença é visível na tela, não só no rótulo, e cada modo é desenhado com a
+figura que o explica.
+
+**Ordens diretas** e **time com gerente** são uma sala: mesas sobre o piso
+quadriculado, e no modo com gerente a mesa dele sozinha na cabeceira, com uma
+linha descendo até as outras. Em ordens diretas cada boneco pula no seu compasso;
+com gerente, **todos pulam juntos**.
+
+**Linha de montagem** e **dupla de revisão** viram um fluxo, porque ali o trabalho
+viaja de um agente para o outro e uma grade de mesas diria a coisa errada. O piso
+vira uma malha de pontos, cada agente vira um nó com pontos de conexão nos dois
+lados, e as setas entre eles carregam a palavra: `Entrada → começa em → 1 →
+entrega para → 2 → … → pronto → Entregue`. Na dupla de revisão a seta que importa
+é a de volta, tracejada por baixo da fileira: **devolve para corrigir**. É o laço
+de feedback desenhado, não descrito.
+
+A linha de montagem ainda numera as mesas e dá botões para reordenar, porque ali
+a ordem das mesas é a ordem do trabalho.
+
+No código esse papel se chama `leadId`, e não `managerId`, porque um avaliador não
+gerencia ninguém: ele lê o que voltou e devolve.
+
+Trocar de modo não apaga nada: o texto de cada mesa continua lá, só muda de
+rótulo, de "Ordem" para "Etapa deste agente", "O que este agente produz" ou
+"Especialidade no time". E ele começa **dobrado**, mostrando o que foi escrito
+como uma linha, porque oito campos de texto abertos transformam uma sala num
+formulário. Tirar o gerente do time deixa a cadeira vazia e bloqueia a exportação
+com a razão escrita na tela, em vez de exportar um documento que mente.
+
+### Times prontos
+
+Para não começar de uma tela em branco, existem **três times prontos**, um por
+formato que vale ver funcionando:
+
+- **Time de Marketing** (com gerente): uma **Gerente de Marketing** na cabeceira,
+  com **Social Media**, **Copywriter de Conversão** e **Editor de SEO** sentados.
+- **Plantão de Qualidade** (linha de montagem): **Triador de Bugs**, **Analista de
+  QA**, **Revisor de Código** e **Companheiro de Plantão**, nessa ordem.
+- **Mesa de Revisão** (dupla de revisão): **Redator Técnico** e **Editor de SEO**
+  produzem, **Guardião da Marca** avalia e devolve.
+
+Nenhum é maquete: os agentes são criados de verdade na sua biblioteca, editáveis
+nas nove etapas como qualquer outro, e o time guarda referências a eles. Pedir um
+exemplo duas vezes dá duas cópias independentes, do mesmo jeito que pedir um
+modelo de agente duas vezes dá dois agentes.
+
+O time guarda **referências** aos agentes, nunca cópias, porque o agente continua
+sendo a única fonte de verdade. Isso tem uma consequência visível: se você
+excluir um agente que estava sentado, a mesa dele vira uma **cadeira vazia** em
+vez de sumir. Apagar a mesa apagaria junto a ordem que você escreveu ali, sem
+avisar.
+
+### Levar o time
+
+A exportação principal é o **kit para Claude Code**: não uma descrição do time,
+mas o time. É a pasta que você solta num projeto e abre:
+
+```
+time-de-conteudo/
+  CLAUDE.md                    objetivo, elenco, o laço e a condição de parada
+  .claude/agents/
+    pesquisadora.md            um subagente por integrante, com front matter
+    redator.md
+    editora.md
+  TEAM.md                      o time como documento único
+  team.json                    a mesma configuração legível por máquina
+  agents/*.json                o config de cada agente, para desmontar o time depois
+```
+
+Cada arquivo em `.claude/agents/` é um subagente de verdade, endereçável pelo
+`name` do front matter: o documento completo do agente, mais uma seção **Role in
+the team** que diz o que ele foi mandado fazer ali e a quem responde.
+
+O `CLAUDE.md` é o que transforma um elenco em algo que roda. Ele traz o objetivo,
+os passos de cada iteração e, principalmente, **quem decide parar**: no modo
+gerente é o gerente, no modo de ordens é o fim da lista. O teto de 12 iterações
+está lá como rede de segurança contra laço infinito e queima de token, e o
+documento diz isso com todas as letras, porque tratar o teto como mecanismo de
+parada é exatamente o erro que a trilha agêntica passa um slide desfazendo.
+
+Também dá para levar o time como texto: **Copiar prompt** (pronto para colar) ou
+**Copiar Markdown**. Nos dois, os agentes entram por referência: cada um já tem o
+próprio documento, e embutir oito deles enterraria justamente aquilo que o
+documento do time existe para dizer.
+
+O botão **Pausar animação** existe porque a WCAG 2.2.2 pede uma forma de parar
+movimento que começa sozinho e não termina. Quem tem "reduzir movimento" ligado
+no sistema já encontra a sala parada.
+
 ## Como funciona (no app)
 
-O botão **Como funciona?** na home abre uma apresentação animada que explica o
-que é um agente, o que é o LLM que serve de cérebro a ele e cada uma das nove
-etapas, usando a história do Pinóquio: de bloco de madeira a menino de verdade.
+O botão **Como funciona?** na home abre um menu de duas trilhas. Escolher uma
+faz o boneco do cartão voar para o palco: o FLIP é medido na figura do cartão,
+então a escolha parece levantar o boneco de dentro dele. O botão **Trilhas** no
+rodapé faz o caminho de volta, com o mesmo morph invertido.
+
+**Meu primeiro agente** (12 slides) explica o que é um agente, o que é o LLM que
+serve de cérebro a ele e cada uma das nove etapas, usando a história do Pinóquio:
+de bloco de madeira a menino de verdade.
+
+**Sistemas agênticos** (13 slides) sobe um nível e conta o que separa um modelo
+que responde de um agente que executa: o modelo sem estado, o LLM aumentado, os
+workflows, o laço e quem decide parar, os quatro passos de cada iteração, as
+quatro decisões por turno, o ReAct, os guardrails nas três fronteiras e os três
+custos reais da autonomia. É um resumo do artigo *The Agent Loop* (ByteByteGo,
+jul/2026) mais a documentação da Anthropic e da OpenAI, com as fontes no último
+slide. A marionete continua sendo a imagem: a virada para agente é o momento em
+que o boneco tira a cruzeta da mão de Gepeto.
+
+Em todo slide das duas trilhas, uma tag no canto superior direito diz o nome
+técnico do assunto: `LLM`, `RAG`, `System prompt`, `Agent loop`, `ReAct`,
+`Compounding error`, `Agent harness`. A história continua sendo o Pinóquio; a tag
+é a palavra que a pessoa vai digitar numa busca depois.
+
 O boneco tem vida própria em todas as cenas, com um repouso que espicha e
-achata ao estilo Scribblenauts. As transições usam FLIP sobre a Web Animations
-API, então o efeito é idêntico em todos os navegadores.
+achata ao estilo Scribblenauts, e a trilha agêntica acrescenta doze cenários
+próprios em `js/ui/puppet-scenes.js`: o trilho pintado, os três portões, a ponte
+de tábuas, a bancada, a bifurcação, a escada. As transições usam FLIP sobre a
+Web Animations API, então o efeito é idêntico em todos os navegadores.
+
+Os slides da segunda trilha carregam blocos estruturados
+(`js/ui/keynote-blocks.js`): tabela, traço ReAct, pseudocódigo do laço, barras de
+confiabilidade, comparação, escada e fontes. Cada um entra em cascata; o que
+repete para sempre é animação CSS, e não `element.animate()`, para que a regra
+global de `prefers-reduced-motion` alcance e nada fique preso invisível.
+
+Um slide que precisa de rolagem não é um slide, então os blocos ficam numa
+terceira coluna ao lado do texto, e não embaixo dele: **figura, prosa,
+estrutura**. A modal se dimensiona por trilha, não por slide (uma trilha tem
+blocos em todos os slides ou em nenhum, então nada redimensiona no meio do
+caminho): 1080x760 para a narrativa, 1240x880 para a agêntica. Nenhum dos 25
+slides rola de 1024x700 para cima, e um teste e2e trava isso, porque a regressão
+aqui é editorial: ninguém quebra nada ao acrescentar duas frases num parágrafo, o
+deck só começa a rolar de novo. Abaixo de 1000px de largura tudo empilha numa
+coluna, e aí a rolagem é o comportamento honesto.
 
 ## Dicionário do agente
 

@@ -11,6 +11,7 @@ import { logger } from './logger.js'
 
 export const STORAGE_KEYS = Object.freeze({
   agents: 'agent-studio:agents',
+  teams: 'agent-studio:teams',
   draft: 'agent-studio:draft',
   previewCollapsed: 'agent-studio:preview-collapsed',
   openSections: 'agent-studio:open-sections',

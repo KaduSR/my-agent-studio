@@ -43,6 +43,17 @@ test('every route loads with no console errors', async ({ page }) => {
     await expect(stepButton).toHaveAttribute('aria-current', 'step')
   }
 
+  // The team routes come after the builder walk, not in the middle of it: the
+  // loop above needs the builder still on screen.
+  await page.goto('/#/times')
+  await expect(page.getByRole('heading', { name: 'Times de agentes' })).toBeVisible()
+
+  await page.goto('/#/times/new')
+  await expect(page.getByLabel('Nome do time')).toBeVisible()
+
+  await page.goto('/#/times/nao-existe')
+  await expect(page.getByText('Time não encontrado')).toBeVisible()
+
   await expect(page).toHaveTitle('Agent Studio')
   expect(problems).toEqual([])
 })

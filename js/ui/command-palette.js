@@ -15,6 +15,7 @@ import { icon } from '../icons.js'
 import { STEPS } from '../data/steps.js'
 import { TEMPLATES } from '../data/templates.js'
 import { listAgents } from '../stores/library-store.js'
+import { listTeams } from '../stores/teams-store.js'
 import { navigate } from '../router.js'
 import { setStep } from '../stores/builder-store.js'
 import { currentRoute } from '../router.js'
@@ -88,6 +89,17 @@ function buildItems() {
     })
   }
 
+  for (const team of listTeams()) {
+    items.push({
+      id: `team:${team.id}`,
+      group: 'Meus times',
+      label: team.name.trim() || 'Time sem nome',
+      hint: team.objective.slice(0, 80),
+      icon: 'handshake',
+      run: () => navigate(`/times/${team.id}`),
+    })
+  }
+
   items.push({
     id: 'nav:library',
     group: 'Ir para',
@@ -95,6 +107,14 @@ function buildItems() {
     hint: 'Ver todos os agentes salvos',
     icon: 'folder',
     run: () => navigate('/studio'),
+  })
+  items.push({
+    id: 'nav:teams',
+    group: 'Ir para',
+    label: 'Times de agentes',
+    hint: 'Montar um time e distribuir as ordens',
+    icon: 'handshake',
+    run: () => navigate('/times'),
   })
   items.push({
     id: 'nav:new',

@@ -1,0 +1,1001 @@
+/*
+ * Agent Studio — teams and the office.
+ *
+ * Covers the teams list, the office screen, the desks and the hopping figures.
+ * It earns its own file for the reason the keynote and the glossary do: the room
+ * is a surface with its own grammar (a floor, a slab, a shadow, a hop) rather
+ * than another arrangement of cards.
+ *
+ * The animation rules here are the load-bearing part. Two contracts, both
+ * documented elsewhere in this codebase and both satisfied by construction:
+ *
+ *  1. Everything that loops forever is a CSS animation, never element.animate().
+ *     The global prefers-reduced-motion rule in base.css reaches CSS and cannot
+ *     reach the Web Animations API, and a CSS animation holds no reference to
+ *     the node it runs on, so a discarded desk cannot keep one alive.
+ *
+ *  2. The resting pose is written in the base rules, not only inside the
+ *     keyframes, and there is no animation-fill-mode. A stopped animation clock
+ *     — reduced motion, a background tab, an automation runtime — therefore
+ *     leaves every figure standing correctly rather than invisible or frozen
+ *     mid-squash. Same reasoning as the view-enter comment in builder.css.
+ */
+
+/* ------------------------------- teams list ------------------------------ */
+
+.team-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.team-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.team-card__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.team-card__roster {
+  display: flex;
+  align-items: center;
+}
+
+/* The portraits overlap into a huddle, so a team reads as a group at a glance. */
+.team-card__seat {
+  display: inline-flex;
+  margin-right: -10px;
+  border: 2px solid var(--surface);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+}
+
+/* Same colour an agent has at its desk: the hue is the agent's identity. */
+.team-card__seat .avatar-art {
+  filter: hue-rotate(var(--sprite-hue, 0deg));
+}
+
+.team-card__seat--empty {
+  width: 34px;
+  height: 34px;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--border-strong);
+  color: var(--text-disabled);
+}
+
+.team-card__more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 26px;
+  margin-left: var(--space-4);
+  padding: 0 var(--space-2);
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+  border-radius: var(--radius-pill);
+}
+
+.team-card__name {
+  font-size: var(--text-section-title);
+  font-weight: var(--weight-section);
+  line-height: var(--leading-tight);
+}
+
+.team-card__summary {
+  margin-top: var(--space-1);
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.team-card__mode {
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+}
+
+.team-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.team-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.team-card__icons {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.team-templates {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-10);
+}
+
+.team-templates .choice-list {
+  margin-top: var(--space-2);
+}
+
+/* The agent templates use an emoji tile; the team ones borrow it. */
+.team-templates .choice-card__icon {
+  font-size: 18px;
+}
+
+/* ------------------------------ office screen ---------------------------- */
+
+.team-office {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.team-office__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+/*
+ * Stacked, not side by side. This is where the goal of the team is written, and
+ * a goal squeezed into a column beside the name reads as a subtitle for it. One
+ * under the other makes them two decisions, in the order they are made.
+ */
+.team-office__fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  flex: 1;
+  max-width: var(--content-max);
+}
+
+.team-office__mode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.team-office__mode-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.office-modes {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* --------------------------------- the room ------------------------------ */
+
+.office {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  padding: var(--space-8) var(--space-5) var(--space-6);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+/*
+ * The floor: a checkerboard of tiles, which is what makes the room read as a
+ * stage rather than a panel. Kept at a low alpha so nothing standing on it ever
+ * loses contrast, and the tile is large enough to be seen as a tile instead of
+ * dissolving into texture.
+ */
+.office__floor {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--surface-secondary);
+  background-image:
+    /* A hairline between tiles, so the pattern reads as a laid floor. The tint is
+       taken from the brand violet rather than neutral grey, because a grey
+       checker on white is the transparency pattern and nothing else. */
+    repeating-linear-gradient(90deg, rgba(131, 58, 180, 0.07) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(0deg, rgba(131, 58, 180, 0.07) 0 1px, transparent 1px 64px),
+    repeating-conic-gradient(rgba(131, 58, 180, 0.022) 0% 25%, transparent 0% 50%);
+  background-size: 64px 64px;
+}
+
+.office__head,
+.office__desks,
+.office__empty,
+.office__hint {
+  position: relative;
+  z-index: 1;
+}
+
+.office__empty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-8) 0;
+}
+
+.office__hint {
+  display: block;
+  text-align: center;
+}
+
+.office__head {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.office__head .desk {
+  max-width: 260px;
+}
+
+/* The line of command, drawn rather than described. */
+.office__spine {
+  position: relative;
+  z-index: 1;
+  width: 2px;
+  height: var(--space-8);
+  border-radius: var(--radius-pill);
+  background: linear-gradient(180deg, var(--accent-deep), var(--accent-hot));
+  opacity: 0.5;
+}
+
+.office__desks {
+  display: grid;
+  width: 100%;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(184px, 1fr));
+}
+
+/* --------------------------------- the flow ------------------------------ */
+
+/*
+ * When the work travels from one agent to the next, a grid of desks is the wrong
+ * picture: it says "these four happen", not "this one hands to that one". The
+ * sequential modes are drawn as a pipeline instead, left to right, with the
+ * arrows carrying the words.
+ *
+ * The floor becomes a dot grid rather than tiles, because this is a canvas now
+ * and not a room.
+ */
+.office[data-layout='flow'] .office__floor {
+  background-image: radial-gradient(circle, rgba(131, 58, 180, 0.16) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* On a canvas nobody is standing on a floor, so the desk furniture goes. */
+.office[data-layout='flow'] .desk__slab {
+  display: none;
+}
+
+.office[data-layout='flow'] .desk__figure {
+  height: 64px;
+  margin-bottom: 0;
+}
+
+.office[data-layout='flow'] .desk__figure .sprite {
+  margin-bottom: 0;
+}
+
+.flow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.flow .desk {
+  /* Relative, or the connection dots below resolve against .office and end up
+     stranded at the edges of the canvas. */
+  position: relative;
+  flex: 0 1 208px;
+  align-self: center;
+}
+
+/* A node on a canvas: the connection points on both sides say it is wired up. */
+.flow .desk::before,
+.flow .desk::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  transform: translateY(-50%);
+}
+
+.flow .desk::before {
+  left: -4px;
+}
+
+.flow .desk::after {
+  right: -4px;
+}
+
+.flow__terminal {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--text-helper);
+  font-weight: var(--weight-label);
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+.flow__terminal--start {
+  color: var(--text-on-accent);
+  background: var(--accent-deep);
+}
+
+.flow__terminal--end {
+  color: var(--success);
+  background: var(--success-soft);
+  border: 1px solid var(--success);
+}
+
+/* The arrow, and the word it carries. */
+.flow__edge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  gap: var(--space-1);
+  flex: 0 0 auto;
+  min-width: 82px;
+  padding: 0 var(--space-2);
+}
+
+.flow__edge-line {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 48px;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.55;
+}
+
+.flow__edge-line::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.flow__edge-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: var(--leading-tight);
+}
+
+/* Producers stack: they work in parallel, and the picture should say so. */
+.flow__group {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+.flow__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  /*
+   * The width is set here, not left to the node's flex-basis: inside a column
+   * the basis is the height, and the nodes would stretch across the canvas.
+   */
+  width: 208px;
+}
+
+.flow__stack .desk {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.flow__gap {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  padding: var(--space-3) var(--space-4);
+  border: 1px dashed var(--danger);
+  border-radius: var(--radius-md);
+}
+
+.flow-loop {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+/*
+ * The feedback edge. It runs back under the row rather than curving over the
+ * nodes: a drawn curve would need measured coordinates, and would be wrong the
+ * moment the row wraps.
+ */
+.flow__return {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  padding: 0 var(--space-6);
+}
+
+.flow__return-arrow {
+  position: relative;
+  flex: 1;
+  height: 2px;
+  border-radius: var(--radius-pill);
+  background: repeating-linear-gradient(90deg, var(--accent-hot) 0 6px, transparent 6px 12px);
+  opacity: 0.75;
+}
+
+.flow__return-arrow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-bottom: 2px solid var(--accent-hot);
+  border-left: 2px solid var(--accent-hot);
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.flow__return-label {
+  font-size: 11px;
+  font-weight: var(--weight-label);
+  color: var(--accent-hot);
+  white-space: nowrap;
+}
+
+/* Below this the row would be more scroll than picture, so it stacks. */
+@media (max-width: 860px) {
+  .flow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .flow__edge {
+    min-width: 0;
+    flex-direction: row;
+    gap: var(--space-2);
+    padding: var(--space-1) 0;
+  }
+
+  .flow__edge-line {
+    width: 2px;
+    min-width: 2px;
+    height: 24px;
+  }
+
+  .flow__edge-line::after {
+    right: 50%;
+    top: auto;
+    bottom: 0;
+    transform: translateX(50%) rotate(135deg);
+  }
+
+  .flow .desk::before,
+  .flow .desk::after {
+    display: none;
+  }
+}
+
+/* ---------------------------------- desks -------------------------------- */
+
+.desk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3) var(--space-3);
+  /*
+   * Slightly translucent so the tiles show through: the desk has to sit *on*
+   * the floor, and an opaque card would cover the room it is standing in.
+   * --surface is #ffffff, so this is that colour with the floor behind it.
+   */
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.desk[data-lead='true'] {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+
+.desk[data-missing='true'] {
+  background: var(--surface-inset);
+  border-style: dashed;
+}
+
+/*
+ * The workstation. The figure stands on the floor line and the desk is drawn in
+ * front of it, overlapping the lower third, so the agent reads as being *at* a
+ * desk rather than hovering above a bar.
+ */
+.desk__figure {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  height: 92px;
+  margin-bottom: var(--space-2);
+}
+
+.desk__figure .sprite {
+  /* Enough overlap to read as standing behind a desk, and no more: the squash is
+     anchored at the feet, so a deeper overlap swallows the figure at the moment
+     it lands. */
+  margin-bottom: 17px;
+}
+
+.desk--head .desk__figure {
+  height: 104px;
+}
+
+/*
+ * A flat slab with a front edge. The box-shadow is the edge, not a shadow: that
+ * is what gives the pseudo-isometric tile look with no transform, and it stays
+ * crisp at any zoom.
+ */
+.desk__slab {
+  position: absolute;
+  bottom: 6px;
+  width: 116px;
+  height: 22px;
+  border-radius: 3px;
+  /* Top face, then the lip where it turns down into the front panel. */
+  background: linear-gradient(
+    180deg,
+    var(--surface-muted) 0 9px,
+    var(--border-default) 9px 11px,
+    var(--surface-inset) 11px 100%
+  );
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 4px 0 var(--border-strong);
+}
+
+.desk--head .desk__slab {
+  width: 136px;
+}
+
+.desk__plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.desk__name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-label);
+  color: var(--text-primary);
+}
+
+.desk__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px var(--space-2);
+  font-size: 11px;
+  font-weight: var(--weight-label);
+  color: var(--text-on-accent);
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+}
+
+.desk__objective {
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/*
+ * The order starts folded. Eight open textareas turn a room into a form, and
+ * what the office is for is seeing who is here and what they were told, which
+ * the summary line already says.
+ */
+.desk__fold {
+  width: 100%;
+}
+
+.desk__fold-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2);
+  cursor: pointer;
+  list-style: none;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--surface-inset);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.desk__fold-summary::-webkit-details-marker {
+  display: none;
+}
+
+.desk__fold-summary:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-muted);
+}
+
+.desk__fold[open] .desk__fold-summary {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  margin-bottom: var(--space-2);
+}
+
+.desk__fold-label {
+  font-size: 11px;
+  font-weight: var(--weight-label);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+}
+
+.desk__fold-preview {
+  font-size: var(--text-helper);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.desk__fold-preview--empty {
+  color: var(--text-disabled);
+  font-style: italic;
+}
+
+/* Open, the summary has already said the label, so the field must not repeat it. */
+.desk__fold[open] .field__header .field-label {
+  display: none;
+}
+
+.desk .field {
+  width: 100%;
+}
+
+.desk .textarea {
+  font-size: var(--text-helper);
+}
+
+/* The running order, under a sequential mode. */
+.desk__step {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-size: var(--text-helper);
+  font-weight: var(--weight-bold);
+  color: var(--text-on-accent);
+  background: var(--accent-deep);
+  border-radius: var(--radius-pill);
+}
+
+/*
+ * An arrow between the desks, so the line reads as a line and not as a grid that
+ * happens to be numbered. Decorative, and the numbers carry the same meaning for
+ * anyone who cannot see it.
+ */
+.office__desks[data-flow='chain'] .desk {
+  position: relative;
+}
+
+.office__desks[data-flow='chain'] .desk:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: calc(var(--space-4) / -2 - 4px);
+  top: 46px;
+  width: 9px;
+  height: 9px;
+  border-top: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+  transform: rotate(45deg);
+  opacity: 0.65;
+}
+
+@media (max-width: 720px) {
+  .office__desks[data-flow='chain'] .desk:not(:last-child)::after {
+    display: none;
+  }
+}
+
+.desk__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+/* --------------------------------- sprites ------------------------------- */
+
+.sprite {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sprite__shadow {
+  position: absolute;
+  bottom: -4px;
+  width: 60%;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(16, 16, 16, 0.45);
+  /* Resting pose lives here, so a stopped clock leaves a grounded figure. */
+  opacity: 0.26;
+  transform: scale(1);
+  animation: desk-hop-shadow var(--sprite-speed, 1.4s) var(--sprite-delay, 0ms) infinite;
+}
+
+.sprite__body {
+  display: block;
+  /* Squash from the feet, never the middle: that is the whole trick. */
+  transform-origin: 50% 100%;
+  filter: hue-rotate(var(--sprite-hue, 0deg));
+  animation: desk-hop var(--sprite-speed, 1.4s) var(--sprite-delay, 0ms) infinite;
+}
+
+.sprite--empty .sprite__body {
+  width: 48px;
+  height: 48px;
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius-pill);
+  animation: none;
+}
+
+.sprite--empty .sprite__shadow {
+  animation: none;
+  opacity: 0.1;
+}
+
+/*
+ * The hop. Four things make it read as a sprite rather than a bouncing ball:
+ * squash and stretch from a planted origin; the two steps(1, end) intervals,
+ * which snap the crouch and the landing in a single frame instead of tweening
+ * them; gravity asymmetry, with a fast launch and a long hang at the apex; and
+ * the idle beat from 78% to 100%, which is what makes it a character waiting
+ * between hops. Applying steps() to the whole animation instead would just look
+ * broken.
+ */
+@keyframes desk-hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.4, 1);
+  }
+  18% {
+    transform: translateY(-1px) scale(1.12, 0.88);
+    animation-timing-function: steps(1, end);
+  }
+  20% {
+    transform: translateY(-9px) scale(0.92, 1.1);
+    animation-timing-function: cubic-bezier(0.33, 0, 0.67, 1);
+  }
+  46% {
+    transform: translateY(-14px) scale(0.96, 1.04);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  72% {
+    transform: translateY(0) scale(1.1, 0.9);
+    animation-timing-function: steps(1, end);
+  }
+  78% {
+    transform: translateY(0) scale(1, 1);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+/* Locked to the same period and delay, scaling the other way. */
+@keyframes desk-hop-shadow {
+  0%,
+  18% {
+    transform: scale(1);
+    opacity: 0.26;
+  }
+  46% {
+    transform: scale(0.55);
+    opacity: 0.11;
+  }
+  72%,
+  100% {
+    transform: scale(1.06);
+    opacity: 0.3;
+  }
+}
+
+/*
+ * The cheapest legible difference between the two modes, and the one nobody has
+ * to read a label to understand: agents under direct orders each hop on their
+ * own beat, a team with a manager hops together.
+ */
+.office[data-mode='orders'] .sprite__body,
+.office[data-mode='orders'] .sprite__shadow {
+  --sprite-speed: calc(1.4s + var(--sprite-jitter, 0ms));
+}
+
+.office[data-mode='managed'] .sprite__body,
+.office[data-mode='managed'] .sprite__shadow {
+  --sprite-delay: 0ms;
+  --sprite-speed: 1.4s;
+}
+
+/*
+ * WCAG 2.2.2: motion that starts on its own and never stops needs a way to stop
+ * it, which prefers-reduced-motion alone does not provide for people who did not
+ * set that preference. The toggle flips this attribute.
+ */
+.office[data-motion='paused'] .sprite__body,
+.office[data-motion='paused'] .sprite__shadow {
+  animation-play-state: paused;
+}
+
+/* --------------------------------- bench --------------------------------- */
+
+.bench {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.bench__heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.bench__list {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.bench__agent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.bench__agent:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.bench__agent[data-blocked='true'] {
+  opacity: 0.5;
+}
+
+.bench__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.bench__name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bench__go {
+  display: inline-flex;
+  color: var(--text-muted);
+}
+
+.bench__agent:hover .bench__go {
+  color: var(--accent);
+}
+
+/* -------------------------------- exporting ------------------------------ */
+
+.team-office__export {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  background: var(--surface-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+}
+
+.team-office__export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.team-office__blockers {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.team-office__blockers li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
