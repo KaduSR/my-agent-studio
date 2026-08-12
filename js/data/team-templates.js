@@ -126,6 +126,39 @@ export const TEAM_TEMPLATES = Object.freeze([
   },
 
   {
+    /*
+     * Ordens diretas, e não um time com gerente, porque quem coordena um
+     * tratamento é o médico da pessoa. Um agente na cabeceira desenhando o
+     * caminho seria a imagem errada de um time que existe para apoiar uma
+     * conduta que já foi prescrita fora daqui.
+     */
+    id: 'health',
+    label: 'Time de Acompanhamento no Mounjaro',
+    emoji: '🩺',
+    tagline: 'Nutrição, treino e organização da consulta, ao lado do seu médico.',
+    objective:
+      'Sustentar o dia a dia de quem faz tratamento com tirzepatida sob acompanhamento médico: comer bem com pouca fome, treinar para preservar massa magra e chegar em cada consulta com o que aconteceu registrado e as perguntas prontas. Nenhuma decisão sobre o medicamento sai daqui.',
+    mode: 'orders',
+    members: [
+      {
+        template: 'endocrine-support',
+        instruction:
+          'Registre o que eu senti na semana, explique em português claro o que o médico já orientou e monte a lista de perguntas da próxima consulta.',
+      },
+      {
+        template: 'nutrition-coach',
+        instruction:
+          'Sugira refeições dentro das metas que a minha nutricionista passou, priorizando proteína, fibra e água nos dias de pouca fome.',
+      },
+      {
+        template: 'personal-trainer',
+        instruction:
+          'Monte a sessão do dia com foco em força, ajustada à energia que eu relatar, dentro do programa que foi liberado para mim.',
+      },
+    ],
+  },
+
+  {
     id: 'data',
     label: 'Time de Dados',
     emoji: '🗂️',

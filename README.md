@@ -100,7 +100,7 @@ divergir do que será exportado.
 **Criar novo agente** pergunta por onde começar:
 
 - **Do zero**, com as nove etapas em branco.
-- **A partir de um modelo**: são 42 agentes completos, com objetivo,
+- **A partir de um modelo**: são 45 agentes completos, com objetivo,
   personalidade, Guard Rails, ferramentas e memória já preenchidos, do revisor de
   código ao roteirista de stories. A home mostra seis; **Ver todos os modelos**
   abre a galeria, paginada de seis em seis, com setas, teclado, arrastar e os
@@ -256,6 +256,14 @@ formato que vale ver funcionando:
 - **Time Fiscal** (dupla de revisão): **Analista Fiscal** apura e **Revisor de
   Contratos** aponta o que gera obrigação; **Auditor Tributário** confere contra a
   norma e devolve.
+- **Time de Acompanhamento no Mounjaro** (ordens diretas): **Apoio
+  Endocrinológico**, **Nutricionista de Apoio** e **Personal Trainer**. É o único
+  em ordens diretas de propósito: quem coordena um tratamento é o médico da
+  pessoa, e um agente na cabeceira seria a imagem errada. Nenhum dos três
+  prescreve, sugere dose ou substitui profissional, e nenhum guarda dado de
+  saúde. O papel do apoio endócrino é registrar o que aconteceu, explicar o que o
+  médico já orientou, preparar as perguntas da consulta e reconhecer o que precisa
+  de atendimento imediato.
 
 Nenhum é maquete: os agentes são criados de verdade na sua biblioteca, editáveis
 nas nove etapas como qualquer outro, e o time guarda referências a eles. Pedir um

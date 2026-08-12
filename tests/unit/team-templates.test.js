@@ -16,6 +16,7 @@ describe('the catalogue', () => {
       'marketing',
       'quality',
       'editorial',
+      'health',
       'data',
       'accounting',
       'tax',
@@ -27,6 +28,11 @@ describe('the catalogue', () => {
     expect(getTeamTemplate('accounting')).toMatchObject({ label: 'Time de Contabilidade', mode: 'chain' })
     expect(getTeamTemplate('tax')).toMatchObject({ label: 'Time Fiscal', mode: 'review' })
     expect(getTeamTemplate('data')).toMatchObject({ label: 'Time de Dados', mode: 'chain' })
+    expect(getTeamTemplate('health')).toMatchObject({
+      label: 'Time de Acompanhamento no Mounjaro',
+      // Ordens diretas de propósito: quem coordena um tratamento é o médico.
+      mode: 'orders',
+    })
   })
 
   it('gives a lead exactly to the teams whose mode needs one', () => {
@@ -211,6 +217,30 @@ describe('creating the example team', () => {
       'Analista de Dados',
       'Designer de Dashboards',
     ])
+  })
+
+  it('keeps the health team out of anyone prescribing anything', () => {
+    const team = /** @type {import('../../js/team/types.js').Team} */ (
+      createTeamFromTemplate('health')
+    )
+    const agents = team.members.map((member) =>
+      listAgents().find((agent) => agent.id === member.agentId)
+    )
+
+    expect(team.mode).toBe('orders')
+    expect(team.leadId).toBeNull()
+
+    const endocrine = agents.find((agent) => agent?.name === 'Apoio Endocrinológico')
+    const rails = endocrine?.guardRails.map((rule) => rule.text).join(' ') ?? ''
+
+    // The one rule this template exists to carry.
+    expect(rails).toContain('Nunca sugira dose')
+    expect(rails).toContain('não substitui acompanhamento médico')
+
+    // And nobody in the team is allowed to keep health data around.
+    for (const agent of agents) {
+      expect(agent?.memory.restrictions.join(' '), agent?.name).toMatch(/dado de saúde|dados de saúde/)
+    }
   })
 
   it('refuses an id the catalogue does not have', () => {
