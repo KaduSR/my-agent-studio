@@ -363,8 +363,8 @@ coluna, e aí a rolagem é o comportamento honesto.
 ## Dicionário do agente
 
 O ícone de capelo, no canto direito da top bar, abre um dicionário para quem
-está começando: **LLM, token, prompt, contexto, harness, ferramentas, base de
-conhecimento, agente, agente ou automação e alucinação**. Cada verbete diz a
+está começando: **LLM, token, prompt, contexto, harness, ferramentas, RBAC, base
+de conhecimento, agente, agente ou automação e alucinação**. Cada verbete diz a
 mesma coisa três vezes, em três registros: a definição sem jargão, a analogia
 com o Pinóquio e onde aquilo aparece numa tarde de uso real. As figuras e a
 animação são as mesmas do keynote, e o `harness` ganhou a cruzeta da marionete,

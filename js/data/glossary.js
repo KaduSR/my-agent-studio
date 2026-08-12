@@ -34,7 +34,7 @@ export const GLOSSARY = Object.freeze([
     plain:
       'É o cérebro que já vem pronto: um programa treinado em muito texto que, diante de uma conversa, calcula qual é a próxima palavra mais provável.',
     story:
-      'A lenha que Gepeto recebeu já falava antes de virar boneco: reclamou quando o machado encostou nela, ainda sem rosto e sem nome. As palavras já estavam na madeira, e ninguém as ensinou.',
+      'Gepeto não ensinou o boneco a falar. Encaixou na cabeça dele um cérebro que já sabia, e que não sabia nada sobre aquela oficina. Escolher qual encaixar é uma decisão; ensinar não é.',
     example:
       'Se você escreve "era uma vez uma", o cérebro completa "menina", "casa", "raposa". Ele não consultou nada em lugar nenhum: só sabe o que costuma vir depois.',
   },
@@ -91,6 +91,17 @@ export const GLOSSARY = Object.freeze([
       'Sem lanterna, a barriga da baleia é escuro e fim de papo. A ferramenta não deixa o boneco mais esperto, deixa ele capaz.',
     example:
       'Pergunte a cotação de hoje. Sem ferramenta, ele responde pelo que leu no treino, que é velho. Com busca, ele vai olhar antes de responder.',
+  },
+  {
+    id: 'rbac',
+    term: 'RBAC',
+    stage: 'gates',
+    plain:
+      'É dar a permissão ao papel, e não a quem está nele. Quem assume o papel herda o que aquele papel pode fazer, e devolve tudo ao sair dele.',
+    story:
+      'Gepeto não entrega o molho de chaves ao boneco. Ele amarra cada chave a um crachá pendurado no portão: com o crachá de quem varre, abre o armário da vassoura e mais nada. Trocou de crachá, trocou o que abre.',
+    example:
+      'No estúdio isso aparece duas vezes. Nas Ferramentas, cada uma que você liga escolhe entre Pergunta antes, Usa sozinho e Só leitura. Nos times, o papel de cada agente diz o que ele encosta. Na prática: um agente com papel de leitura consulta o banco e não consegue apagar nada, mesmo que alguém escreva no meio da conversa uma instrução mandando apagar. É por isso que a permissão fica no papel e não no pedido: o pedido é justamente o que um invasor consegue escrever.',
   },
   {
     id: 'knowledge',
