@@ -124,6 +124,93 @@ export const TEAM_TEMPLATES = Object.freeze([
       },
     ],
   },
+
+  {
+    id: 'data',
+    label: 'Time de Dados',
+    emoji: '🗂️',
+    tagline: 'Da base que chegou ao painel, sem pular a conferência.',
+    objective:
+      'Transformar uma base recebida em um painel que alguém usa para decidir, com o mapeamento explícito, a limpeza escrita, os números conferidos contra a origem e nenhuma coluna entrando no painel sem se saber o que ela é.',
+    mode: 'chain',
+    members: [
+      {
+        template: 'data-mapper',
+        instruction:
+          'Diga o que cada coluna realmente contém, proponha o mapeamento e liste o que não tem destino.',
+      },
+      {
+        template: 'data-engineer',
+        instruction:
+          'Escreva a transformação até o modelo de destino, com toda regra de limpeza registrada.',
+      },
+      {
+        template: 'data-analyst',
+        instruction:
+          'Confira os números resultantes contra a origem e traga as diferenças com a query que as achou.',
+      },
+      {
+        template: 'dashboard-designer',
+        instruction:
+          'Monte o painel a partir da pergunta que ele responde, não a partir das colunas disponíveis.',
+      },
+    ],
+  },
+
+  {
+    id: 'accounting',
+    label: 'Time de Contabilidade',
+    emoji: '📒',
+    tagline: 'Do lançamento ao fechamento explicado, em três etapas.',
+    objective:
+      'Fechar o mês com todo lançamento lastreado em documento, os saldos conferidos contra os sistemas de origem e cada variação relevante explicada antes de o número virar decisão.',
+    mode: 'chain',
+    members: [
+      {
+        template: 'accounting-analyst',
+        instruction:
+          'Classifique os fatos do mês no plano de contas e separe o que ficou sem documento suficiente.',
+      },
+      {
+        template: 'data-analyst',
+        instruction:
+          'Cruze os saldos com os sistemas de origem e traga as diferenças com a query que as encontrou.',
+      },
+      {
+        template: 'controller',
+        instruction:
+          'Feche o período e explique cada variação relevante, dizendo o que é sazonal e o que é tendência.',
+      },
+    ],
+  },
+
+  {
+    id: 'tax',
+    label: 'Time Fiscal',
+    emoji: '🧾',
+    tagline: 'Apura, confere contra a norma e devolve até fechar.',
+    objective:
+      'Entregar a apuração do período com memorial de cálculo reproduzível e conferida contra a legislação vigente, com cada ponto duvidoso resolvido ou explicitamente marcado para um profissional.',
+    mode: 'review',
+    lead: 'tax-auditor',
+    members: [
+      {
+        template: 'tax-auditor',
+        instruction:
+          'Devolva enquanto houver apontamento sem norma citada ou tratamento sem base. Aponte o ponto, não a impressão.',
+      },
+      {
+        template: 'tax-analyst',
+        instruction:
+          'Apure os tributos do período com o memorial de cálculo aberto, passo a passo.',
+      },
+      {
+        template: 'contract-reviewer',
+        instruction:
+          'Leia os contratos do período e aponte as cláusulas que criam obrigação fiscal ou mudam o tratamento.',
+      },
+    ],
+  },
 ])
 
 /**

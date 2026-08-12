@@ -12,6 +12,8 @@ const SLIDES = KEYNOTE.length
 const AGENTIC_SLIDES = KEYNOTE_AGENTIC.length
 const TERMS = GLOSSARY.length
 const MODELS = TEMPLATES.length
+/** The gallery deals six to a page. */
+const MODEL_PAGES = Math.ceil(MODELS / 6)
 
 /*
  * Each test gets a fresh browser context, so localStorage starts empty and
@@ -51,6 +53,25 @@ const trait = (page, name) =>
 const openTrack = async (page, title) => {
   await page.getByRole('button', { name: 'Como funciona?' }).click()
   await page.locator('.keynote__track', { hasText: title }).click()
+}
+
+/**
+ * Walk a deck until the note with this title is on screen.
+ *
+ * By title rather than by a count of arrow presses: the decks are edited often,
+ * and a test that counts keystrokes breaks on every note inserted in the middle
+ * without saying anything about what actually went wrong.
+ *
+ * @param {import('@playwright/test').Page} page
+ * @param {string} title
+ * @param {number} total How many notes the deck has.
+ */
+const goToNote = async (page, title, total) => {
+  for (let i = 0; i < total; i += 1) {
+    if ((await page.locator('.keynote__title').textContent()) === title) return
+    await page.keyboard.press('ArrowRight')
+  }
+  await expect(page.locator('.keynote__title')).toHaveText(title)
 }
 
 test('builds an agent end to end and copies the Markdown (SPEC 72)', async ({
@@ -447,17 +468,17 @@ test('the gallery deals every model out in pages', async ({ page }) => {
 
   const gallery = page.locator('dialog.gallery')
   await expect(gallery).toBeVisible()
-  await expect(page.locator('.gallery__counter')).toHaveText('1 / 6')
-  await expect(page.locator('.gallery__page')).toHaveCount(6)
+  await expect(page.locator('.gallery__counter')).toHaveText(`1 / ${MODEL_PAGES}`)
+  await expect(page.locator('.gallery__page')).toHaveCount(MODEL_PAGES)
   await expect(gallery.getByRole('button', { name: 'Modelos anteriores' })).toBeDisabled()
 
   // Every template is present, six to a page.
   await expect(gallery.locator('.template-card')).toHaveCount(MODELS)
 
   await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.gallery__counter')).toHaveText('2 / 6')
+  await expect(page.locator('.gallery__counter')).toHaveText(`2 / ${MODEL_PAGES}`)
   await page.keyboard.press('End')
-  await expect(page.locator('.gallery__counter')).toHaveText('6 / 6')
+  await expect(page.locator('.gallery__counter')).toHaveText(`${MODEL_PAGES} / ${MODEL_PAGES}`)
   await expect(gallery.getByRole('button', { name: 'Próximos modelos' })).toBeDisabled()
 
   // The Instagram-minded ones live on the last page.
@@ -467,7 +488,7 @@ test('the gallery deals every model out in pages', async ({ page }) => {
   await expect(page.locator('.gallery__page').first()).toHaveAttribute('aria-hidden', 'true')
 
   await page.locator('.gallery__dot').first().click()
-  await expect(page.locator('.gallery__counter')).toHaveText('1 / 6')
+  await expect(page.locator('.gallery__counter')).toHaveText(`1 / ${MODEL_PAGES}`)
 
   // Picking a card closes the gallery and opens that agent, already filled in.
   await gallery.getByRole('button', { name: /modelo Revisor de Código/ }).click()
@@ -632,23 +653,23 @@ test('the keynote runs end to end from both entry points', async ({ page }) => {
   await expect(page.locator('.keynote__title')).toHaveText('O que é um agente?')
   await expect(page.locator('.keynote__counter')).toHaveText(`1 / ${SLIDES}`)
   // Nothing to go back to on the first slide.
-  await expect(page.getByRole('button', { name: 'Slide anterior' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Nota anterior' })).toBeDisabled()
 
   // The model comes before step 1: the opening slide says what the user builds
   // is not the model, so the next one has to say what the model is.
   await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.keynote__title')).toHaveText('A madeira já falava')
+  await expect(page.locator('.keynote__title')).toHaveText('O cérebro artificial')
   await expect(page.locator('.keynote__lesson')).toContainText('LLM')
-  // The point of the image: the log spoke before anyone carved it, which is what
-  // "pre-trained" means without using the word.
-  await expect(page.locator('.keynote__story')).toContainText('sem nome')
+  // The point of the image: the brain arrived ready and was fitted in, which is
+  // what "pre-trained" means without using the word.
+  await expect(page.locator('.keynote__story')).toContainText('já vinha pronto')
 
   // Walk to the end with the keyboard alone.
   for (let i = 0; i < SLIDES - 2; i += 1) await page.keyboard.press('ArrowRight')
 
   await expect(page.locator('.keynote__counter')).toHaveText(`${SLIDES} / ${SLIDES}`)
   await expect(page.locator('.keynote__title')).toHaveText('Agora esculpe o seu')
-  await expect(page.getByRole('button', { name: 'Próximo slide' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Próxima nota' })).toBeDisabled()
 
   // Back one, then jump home and to the end.
   await page.keyboard.press('ArrowLeft')
@@ -839,7 +860,7 @@ test('the agentic track runs end to end and comes back to the menu', async ({ pa
     `${AGENTIC_SLIDES} / ${AGENTIC_SLIDES}`
   )
   await expect(page.locator('.keynote__title')).toHaveText('De onde isso vem')
-  await expect(page.getByRole('button', { name: 'Próximo slide' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: 'Próxima nota' })).toBeDisabled()
 
   // Sources open away from the app rather than swallowing the click.
   const source = page.locator('.knote-link__anchor').first()
@@ -860,23 +881,23 @@ test('the agentic slides carry their tables, their trace and their bars', async 
   await openTrack(page, 'Sistemas agênticos')
 
   // The four workflow patterns, as the app's only real table.
-  await page.keyboard.press('ArrowRight')
-  await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.keynote__title')).toHaveText('O trilho pintado no chão')
+  await goToNote(page, 'O trilho pintado no chão', AGENTIC_SLIDES)
   await expect(page.locator('.knote-table tbody tr')).toHaveCount(4)
   await expect(page.locator('.knote-table')).toContainText('Orquestrador-trabalhador')
 
   // ReAct, as a log that alternates reasoning and action.
-  for (let i = 0; i < 4; i += 1) await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.keynote__title')).toHaveText('O diário do Grilo Falante')
+  await goToNote(page, 'O diário do Grilo Falante', AGENTIC_SLIDES)
   await expect(page.locator('.knote-trace__row')).toHaveCount(8)
   await expect(page.locator('.knote-trace__row[data-kind="observation"]')).toHaveCount(2)
   await expect(page.locator('.knote-trace__row[data-kind="final"]')).toHaveCount(1)
 
+  // Human in the loop, between the gates and the costs.
+  await goToNote(page, 'A cruzeta de volta na mão de Gepeto', AGENTIC_SLIDES)
+  await expect(page.locator('.knote-points .knote-point')).toHaveCount(3)
+  await expect(page.locator('.keynote__blocks')).toContainText('Antes do que não se desfaz')
+
   // Compounding error, as the drop between two bars.
-  await page.keyboard.press('ArrowRight')
-  await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.keynote__title')).toHaveText('A ponte de tábuas')
+  await goToNote(page, 'A ponte de tábuas', AGENTIC_SLIDES)
   await expect(page.locator('.knote-meter__value').nth(0)).toHaveText('60%')
   await expect(page.locator('.knote-meter__value').nth(1)).toHaveText('36%')
 
@@ -890,9 +911,7 @@ test('the agentic slides carry their tables, their trace and their bars', async 
   expect(widths[0]).toBeGreaterThan(widths[1])
 
   // Workflow against agent, side by side.
-  await page.keyboard.press('ArrowRight')
-  await page.keyboard.press('ArrowRight')
-  await expect(page.locator('.keynote__title')).toHaveText('Trilho ou mar aberto')
+  await goToNote(page, 'Trilho ou mar aberto', AGENTIC_SLIDES)
   await expect(page.locator('.knote-compare__column')).toHaveCount(2)
 
   // And the arc, with the agent on the top rung.

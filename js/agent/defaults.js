@@ -9,6 +9,7 @@
 import { uuid } from '../lib/uuid.js'
 import { defaultSliderValues } from '../data/behavior-sliders.js'
 import { DEFAULT_AVATAR_ID } from '../data/avatars.js'
+import { ALWAYS_MEMORY_KINDS } from '../data/memory.js'
 import { getTemplate } from '../data/templates.js'
 import { getKnowledgeEntry } from '../data/knowledge-library.js'
 import { createToolCatalogue } from './tool-catalogue.js'
@@ -87,6 +88,9 @@ export function createDefaultTools() {
 export function createDefaultMemory() {
   return {
     type: 'session',
+    // The context window is not a choice: every agent has one, and the step says
+    // so rather than letting someone build a mental model without it.
+    kinds: [...ALWAYS_MEMORY_KINDS],
     remember: [],
     restrictions: [...DEFAULT_MEMORY_RESTRICTIONS],
   }
@@ -167,6 +171,7 @@ export function createAgentFromTemplate(templateId) {
     memory: {
       ...base.memory,
       type: source.memory.type,
+      kinds: [...new Set([...ALWAYS_MEMORY_KINDS, ...(source.memory.kinds ?? [])])],
       remember: [...source.memory.remember],
       // The SPEC 77 defaults are safety rules; a template may add to them but
       // never replace them.

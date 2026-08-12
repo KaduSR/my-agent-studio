@@ -46,6 +46,74 @@ export const MEMORY_TYPES = Object.freeze([
 ])
 
 /**
+ * The kinds of memory an agent can carry.
+ *
+ * A different axis from MEMORY_TYPES, and worth saying so out loud: those four
+ * answer *for how long* the agent remembers, these answer *what shape* the
+ * memory has. A team can want persistent retention and still only ever store
+ * facts, never procedures.
+ *
+ * The context window is on the list even though nobody chooses it, because the
+ * most useful thing a beginner can learn on this step is that it is the only
+ * place the model actually reads. Everything else on the list is a strategy for
+ * getting something back into it in time.
+ *
+ * @typedef {Object} MemoryKindOption
+ * @property {string} id
+ * @property {string} label
+ * @property {string} icon
+ * @property {string} description
+ * @property {string} [tooltip]
+ * @property {boolean} [always] True when every agent has it whether it is asked
+ *   for or not, so the card is shown selected and explains why.
+ */
+
+/** @type {ReadonlyArray<MemoryKindOption>} */
+export const MEMORY_KINDS = Object.freeze([
+  {
+    id: 'context-window',
+    label: 'Janela de contexto',
+    icon: 'app-window',
+    description: 'O que cabe na conversa agora. É o único lugar em que o modelo realmente lê.',
+    tooltip:
+      'Todo agente tem uma, e ela tem tamanho fixo. Toda outra memória desta lista é uma estratégia para trazer a coisa certa de volta para dentro dela na hora certa.',
+    always: true,
+  },
+  {
+    id: 'episodic',
+    label: 'Memória episódica',
+    icon: 'clock',
+    description: 'O que aconteceu: conversas anteriores, o que já foi tentado e como terminou.',
+    tooltip:
+      'É o diário do agente. Serve para não repetir um caminho que já falhou e para retomar de onde parou.',
+  },
+  {
+    id: 'semantic',
+    label: 'Memória semântica',
+    icon: 'brain',
+    description: 'O que é verdade: fatos sobre você, sobre o produto e sobre o domínio.',
+    tooltip:
+      'Fatos soltos do tempo em que foram aprendidos. "O cliente prefere e-mail curto" vale hoje e valia mês passado.',
+  },
+  {
+    id: 'procedural',
+    label: 'Memória procedimental',
+    icon: 'list-ordered',
+    description: 'Como fazer: o passo a passo que funcionou antes e deve ser repetido.',
+    tooltip:
+      'A receita, não o episódio. É o que transforma um acerto isolado em um jeito de trabalhar.',
+  },
+  {
+    id: 'retrieval',
+    label: 'Busca em base',
+    icon: 'search',
+    description: 'Nada fica na cabeça: o agente busca o trecho na hora e traz para a conversa.',
+    tooltip:
+      'É o RAG. Diferente das outras três, aqui o conteúdo nunca é do agente: ele vive numa base e é buscado a cada pergunta.',
+  },
+])
+
+/**
  * @typedef {Object} MemoryOption
  * @property {string} id
  * @property {string} label
@@ -86,3 +154,16 @@ export function getMemoryType(id) {
 export function memoryOptionLabel(id) {
   return MEMORY_REMEMBER_OPTIONS.find((option) => option.id === id)?.label ?? id
 }
+
+/**
+ * @param {string} id
+ * @returns {MemoryKindOption | undefined}
+ */
+export function getMemoryKind(id) {
+  return MEMORY_KINDS.find((kind) => kind.id === id)
+}
+
+/** The kinds every agent carries whether or not anyone picked them. */
+export const ALWAYS_MEMORY_KINDS = Object.freeze(
+  MEMORY_KINDS.filter((kind) => kind.always).map((kind) => kind.id)
+)

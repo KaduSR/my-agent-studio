@@ -23,7 +23,7 @@ import { TONES, MAX_TONES } from '../data/tones.js'
 import { TRAITS, MAX_TRAITS } from '../data/traits.js'
 import { RESPONSE_STYLES } from '../data/response-styles.js'
 import { SOUL_VALUES } from '../data/soul-values.js'
-import { MEMORY_REMEMBER_OPTIONS, MEMORY_TYPES } from '../data/memory.js'
+import { ALWAYS_MEMORY_KINDS, MEMORY_KINDS, MEMORY_REMEMBER_OPTIONS, MEMORY_TYPES } from '../data/memory.js'
 import { SLIDER_IDS } from '../data/behavior-sliders.js'
 import { AVATARS } from '../data/avatars.js'
 
@@ -194,6 +194,10 @@ export function agentFromJson(raw) {
       type: /** @type {import('./types.js').MemoryType} */ (
         idsOf(MEMORY_TYPES).has(memoryType) ? memoryType : base.memory.type
       ),
+      // The context window is always there, whatever the file says.
+      kinds: [
+        ...new Set([...ALWAYS_MEMORY_KINDS, ...knownIds(memory.kinds, idsOf(MEMORY_KINDS))]),
+      ],
       remember: knownIds(memory.remember, idsOf(MEMORY_REMEMBER_OPTIONS)),
       restrictions,
     },

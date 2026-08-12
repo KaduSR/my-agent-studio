@@ -115,7 +115,7 @@ export function openKeynote(trackId) {
     {
       type: 'button',
       class: 'btn btn-secondary btn-sm',
-      'aria-label': 'Slide anterior',
+      'aria-label': 'Nota anterior',
       onclick: () => go(index - 1),
     },
     icon('chevron-left', { size: 15 }),
@@ -127,7 +127,7 @@ export function openKeynote(trackId) {
     {
       type: 'button',
       class: 'btn btn-primary btn-sm',
-      'aria-label': 'Próximo slide',
+      'aria-label': 'Próxima nota',
       onclick: () => go(index + 1),
     },
     'Avançar',

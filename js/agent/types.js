@@ -76,8 +76,13 @@
 /** @typedef {'none' | 'session' | 'persistent' | 'selective'} MemoryType */
 
 /**
+ * `type` is how long the agent remembers; `kinds` is what shape the memory has.
+ * Two axes on purpose: a team can want persistent retention and still only ever
+ * store facts, never procedures.
+ *
  * @typedef {Object} AgentMemory
  * @property {MemoryType} type
+ * @property {string[]} kinds Ids from data/memory.js MEMORY_KINDS.
  * @property {string[]} remember
  * @property {string[]} restrictions
  */

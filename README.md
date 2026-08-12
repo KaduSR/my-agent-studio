@@ -100,7 +100,7 @@ divergir do que será exportado.
 **Criar novo agente** pergunta por onde começar:
 
 - **Do zero**, com as nove etapas em branco.
-- **A partir de um modelo**: são 36 agentes completos, com objetivo,
+- **A partir de um modelo**: são 42 agentes completos, com objetivo,
   personalidade, Guard Rails, ferramentas e memória já preenchidos, do revisor de
   código ao roteirista de stories. A home mostra seis; **Ver todos os modelos**
   abre a galeria, paginada de seis em seis, com setas, teclado, arrastar e os
@@ -124,6 +124,13 @@ Um agente salvo antes de o catálogo crescer ganha as ferramentas novas
 automaticamente, sem perder nada do que já estava configurado. Isso vive em um só
 lugar, `js/agent/tool-catalogue.js`, usado tanto pela biblioteca quanto pela
 importação.
+
+A etapa **Memória** separa dois eixos que costumam ser confundidos. *Quanto ele
+deve lembrar* é a retenção: sem memória, de sessão, persistente ou seletiva.
+*Tipos de memória* é a forma: **janela de contexto**, **episódica**, **semântica**,
+**procedimental** e **busca em base**. A janela vem marcada e não sai, porque não é
+uma escolha: é o único lugar em que o modelo lê, e as outras quatro são maneiras
+de trazer a coisa certa de volta para dentro dela na hora certa.
 
 Em **Comportamento** (etapa Personalidade) são nove sliders, cinco perfis prontos
 (Equilibrado, Criativo, Rigoroso, Executivo, Didático), um botão para voltar ao
@@ -241,6 +248,14 @@ formato que vale ver funcionando:
   QA**, **Revisor de Código** e **Companheiro de Plantão**, nessa ordem.
 - **Mesa de Revisão** (dupla de revisão): **Redator Técnico** e **Editor de SEO**
   produzem, **Guardião da Marca** avalia e devolve.
+- **Time de Dados** (linha de montagem): **Mapeador de Dados**, **Engenheiro de
+  Dados**, **Analista de Dados** e **Designer de Dashboards**. Da base que chegou
+  ao painel, sem pular a conferência.
+- **Time de Contabilidade** (linha de montagem): **Analista Contábil**, **Analista
+  de Dados** e **Controller**. Do lançamento ao fechamento explicado.
+- **Time Fiscal** (dupla de revisão): **Analista Fiscal** apura e **Revisor de
+  Contratos** aponta o que gera obrigação; **Auditor Tributário** confere contra a
+  norma e devolve.
 
 Nenhum é maquete: os agentes são criados de verdade na sua biblioteca, editáveis
 nas nove etapas como qualquer outro, e o time guarda referências a eles. Pedir um

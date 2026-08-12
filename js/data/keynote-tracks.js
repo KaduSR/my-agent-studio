@@ -38,7 +38,7 @@ export const KEYNOTE_TRACKS = Object.freeze([
     eyebrow: 'Comece por aqui',
     title: 'Meu primeiro agente',
     description:
-      'O boneco de madeira, do bloco na bancada até o menino que sai pelo mundo. Uma etapa do estúdio por slide.',
+      'O boneco de madeira, do bloco na bancada até o menino que sai pelo mundo. Uma etapa do estúdio por nota.',
     stage: 'wood',
     slides: KEYNOTE,
   },

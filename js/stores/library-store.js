@@ -54,6 +54,11 @@ export function reviveAgent(raw) {
     memory: {
       ...base.memory,
       ...(typeof record.memory === 'object' && record.memory ? record.memory : {}),
+      // Agents saved before the memory kinds existed have no such key, and the
+      // step would read `undefined.includes` on open.
+      kinds: Array.isArray(/** @type {any} */ (record.memory)?.kinds)
+        ? /** @type {any} */ (record.memory).kinds
+        : base.memory.kinds,
     },
     // `hardRules` is the pre-rename name. Agents saved before Guard Rails
     // existed still carry it, and dropping it would make their rules vanish

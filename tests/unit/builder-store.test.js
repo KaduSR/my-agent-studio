@@ -18,6 +18,7 @@ import {
   removeRestriction,
   removeRule,
   setMemoryType,
+  toggleMemoryKind,
   setSlider,
   setStep,
   setToolPermission,
@@ -404,5 +405,34 @@ describe('knowledge', () => {
     moveKnowledgeDoc(0, 3)
     moveKnowledgeDoc(1, 1)
     expect(getAgent()).toBe(before)
+  })
+})
+
+describe('memory kinds', () => {
+  it('starts with the context window and nothing else', () => {
+    expect(getAgent().memory.kinds).toEqual(['context-window'])
+  })
+
+  it('adds and removes a kind', () => {
+    toggleMemoryKind('episodic')
+    expect(getAgent().memory.kinds).toContain('episodic')
+
+    toggleMemoryKind('episodic')
+    expect(getAgent().memory.kinds).not.toContain('episodic')
+  })
+
+  it('refuses to remove the context window', () => {
+    // Not a setting: it is how the model works, and a step that let someone
+    // switch it off would be teaching something false.
+    toggleMemoryKind('context-window')
+    expect(getAgent().memory.kinds).toContain('context-window')
+  })
+
+  it('leaves the retention type alone', () => {
+    setMemoryType('persistent')
+    toggleMemoryKind('procedural')
+
+    expect(getAgent().memory.type).toBe('persistent')
+    expect(getAgent().memory.kinds).toEqual(['context-window', 'procedural'])
   })
 })

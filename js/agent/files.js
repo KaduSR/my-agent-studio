@@ -83,6 +83,7 @@ export function generateConfigJson(agent) {
     })),
     memory: {
       type: agent.memory.type,
+      kinds: agent.memory.kinds,
       remember: agent.memory.remember,
       restrictions: agent.memory.restrictions,
     },

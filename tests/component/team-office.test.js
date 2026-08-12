@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { beforeEach, describe, expect, it } from 'vitest'
-import { screen, within } from '@testing-library/dom'
+import { screen, waitFor, within } from '@testing-library/dom'
 import userEvent from '@testing-library/user-event'
 import { teamView } from '../../js/views/team.js'
 import { createEmptyAgent } from '../../js/agent/defaults.js'
@@ -36,6 +36,20 @@ function mount(overrides = {}) {
 const desks = () => Array.from(document.querySelectorAll('.desk'))
 const deskFor = (/** @type {string} */ name) =>
   /** @type {HTMLElement} */ (desks().find((desk) => desk.textContent?.includes(name)))
+
+/**
+ * The summary that unfolds a desk's order field.
+ *
+ * Waits for the desk to exist first: seating an agent rebuilds the room, and a
+ * slower machine can run the assertion before the rebuild lands.
+ *
+ * @param {string} name
+ * @returns {Promise<HTMLElement>}
+ */
+const orderSummary = async (name) => {
+  await waitFor(() => expect(deskFor(name)).toBeTruthy())
+  return /** @type {HTMLElement} */ (deskFor(name).querySelector('summary'))
+}
 
 beforeEach(() => {
   mount()
@@ -128,6 +142,14 @@ describe('the two modes', () => {
   it('keeps what was typed when the mode flips and flips back', async () => {
     const id = mount()
     await userEvent.click(screen.getByRole('button', { name: 'Sentar no time: Ana' }))
+
+    /*
+     * Open the fold before typing, the way a person does. It is also what makes
+     * this deterministic: seating an agent moves focus to the new desk on the
+     * next frame, and typing straight away raced that and lost the keystrokes to
+     * a button on a slow machine.
+     */
+    await userEvent.click(await orderSummary('Ana'))
     await userEvent.type(
       within(deskFor('Ana')).getByLabelText(/Ordem para este agente/),
       'Levantar cinco estudos.'

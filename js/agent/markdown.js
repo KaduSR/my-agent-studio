@@ -14,7 +14,7 @@ import { toneLabels } from '../data/tones.js'
 import { traitLabels } from '../data/traits.js'
 import { responseStyleLabel } from '../data/response-styles.js'
 import { soulValueLabels } from '../data/soul-values.js'
-import { getMemoryType, memoryOptionLabel } from '../data/memory.js'
+import { getMemoryKind, getMemoryType, memoryOptionLabel } from '../data/memory.js'
 import { BEHAVIOR_SLIDERS, bandFor } from '../data/behavior-sliders.js'
 import { getToolDefinition, getToolPermission } from '../data/tools.js'
 
@@ -303,8 +303,14 @@ export function memorySection(agent, level = 2) {
     .map((entry) => entry.trim())
     .filter((entry) => entry.length > 0)
 
+  const kinds = agent.memory.kinds
+    .map((id) => getMemoryKind(id))
+    .filter((kind) => kind !== undefined)
+    .map((kind) => `${kind.label}: ${kind.description}`)
+
   const body = joinBlocks(
     type && `Type: ${type.label} — ${type.description}`,
+    kinds.length > 0 && joinBlocks(heading(level + 1, 'Kinds'), bullets(kinds)),
     agent.memory.type !== 'none' &&
       remember.length > 0 &&
       joinBlocks(heading(level + 1, 'Remember'), bullets(remember)),

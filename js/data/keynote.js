@@ -58,11 +58,11 @@ export const KEYNOTE = Object.freeze([
     term: 'LLM',
     stage: 'brain',
     eyebrow: 'A matéria-prima',
-    title: 'A madeira já falava',
+    title: 'O cérebro artificial',
     story:
-      'A lenha que Gepeto recebeu não era um pedaço de pau comum. Quando Mestre Cereja encostou o machado nela, ela reclamou em voz alta, ainda sem rosto, sem nome e sem nenhuma forma. Ninguém tinha ensinado nada a ela: a fala já vinha na madeira.',
+      'Gepeto não ensinou o boneco a pensar. Ele abriu a cabeça de madeira e encaixou ali dentro um cérebro que já vinha pronto, sabendo falar de tudo e não sabendo nada sobre aquela oficina. O boneco continuou o mesmo pedaço de pau; o que mudou foi o que passou a morar dentro dele.',
     lesson:
-      'Essa madeira é o LLM, o modelo de linguagem que serve de cérebro ao agente. Você não o ensina a falar, ele já chega assim: treinado em muito texto, capaz de escrever e raciocinar sobre quase qualquer assunto. E, como a lenha na bancada, ele não sabe quem é, para quem trabalha nem onde deve parar. Esculpir é o que falta, e é o que as nove etapas a seguir fazem.',
+      'Esse cérebro é o LLM, e a parte que mais surpreende quem começa é que ele não é seu. Você não o treina nem o ensina a escrever: ele chega pronto, com o que aprendeu de muito texto, e você escolhe qual encaixar. O que é seu é tudo em volta. O mesmo cérebro dentro de dois bonecos diferentes dá dois agentes diferentes, e a diferença não está no modelo, está no nome, no objetivo, nas regras e nas ferramentas que você vai definir nas nove etapas. É por isso que trocar de modelo raramente resolve um agente ruim.',
   },
   {
     id: 'identity',

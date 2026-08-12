@@ -610,14 +610,31 @@ export function puppet(stage, size = 320) {
     duration: 2100,
   })
 
+  /*
+   * The brain is not sitting there waiting: it is lowered into the head, settles,
+   * beats a couple of times and the loop starts over. The slide says the model is
+   * something you fit into the figure rather than something you teach it, and a
+   * network that merely pulsed in place said the opposite.
+   *
+   * One infinite animation rather than a one-shot plus a pulse, so `stopPuppet`
+   * has a single handle to cancel and a discarded slide leaves nothing running.
+   */
   idle(
     svg,
     brain,
     [
-      { transform: 'scale(0.94)', opacity: 0.55 },
-      { transform: 'scale(1.07)', opacity: 1 },
+      { offset: 0, transform: 'translateY(-46px) scale(0.7)', opacity: 0 },
+      { offset: 0.1, transform: 'translateY(-46px) scale(0.7)', opacity: 0.9, easing: 'cubic-bezier(0.55, 0, 0.9, 0.6)' },
+      // Lands with a little give, the way something heavy set down does.
+      { offset: 0.3, transform: 'translateY(3px) scale(1.12)', opacity: 1, easing: 'cubic-bezier(0.34, 1.56, 0.64, 1)' },
+      { offset: 0.4, transform: 'translateY(0) scale(1)', opacity: 1 },
+      { offset: 0.58, transform: 'translateY(0) scale(1.08)', opacity: 1 },
+      { offset: 0.74, transform: 'translateY(0) scale(0.97)', opacity: 1 },
+      { offset: 0.88, transform: 'translateY(0) scale(1.04)', opacity: 1 },
+      { offset: 0.97, transform: 'translateY(0) scale(1)', opacity: 0 },
+      { offset: 1, transform: 'translateY(-46px) scale(0.7)', opacity: 0 },
     ],
-    { duration: 900 }
+    { duration: 3200, direction: 'normal', easing: 'ease-in-out' }
   )
 
   idle(svg, heart, [{ transform: 'scale(0.92)' }, { transform: 'scale(1.16)' }], { duration: 560 })

@@ -190,7 +190,7 @@ export const KEYNOTE_AGENTIC = Object.freeze([
     story:
       'Do palco saem quatro caminhos: a porta da rua, a ferramenta na parede, outro boneco esperando nos bastidores e um balão de pensamento que não leva a lugar nenhum. A cada volta ele escolhe um.',
     lesson:
-      'Quando o modelo produz sua saída, ela cai em uma dessas quatro categorias, e o runtime ramifica de acordo. É essa ramificação que dá a sensação de inteligência ao sistema, porque o modelo não está apenas gerando texto: está escolhendo que tipo de movimento fazer. As três primeiras são comportamentos de primeira classe em SDKs como o de agentes da OpenAI. A quarta é menos um caminho de código separado e mais uma propriedade de como o prompt foi escrito, e é o que sustenta o padrão do slide seguinte.',
+      'Quando o modelo produz sua saída, ela cai em uma dessas quatro categorias, e o runtime ramifica de acordo. É essa ramificação que dá a sensação de inteligência ao sistema, porque o modelo não está apenas gerando texto: está escolhendo que tipo de movimento fazer. As três primeiras são comportamentos de primeira classe em SDKs como o de agentes da OpenAI. A quarta é menos um caminho de código separado e mais uma propriedade de como o prompt foi escrito, e é o que sustenta o padrão da nota seguinte.',
     blocks: [
       {
         type: 'points',
@@ -276,6 +276,40 @@ export const KEYNOTE_AGENTIC = Object.freeze([
             iconName: 'alert-triangle',
             label: 'Na saída final',
             text: 'Depois de o laço decidir terminar e antes de o usuário ver a resposta fica a última camada de política: vazamento de dados sensíveis, afirmações que a empresa não quer fazer em seu nome, promessas que o agente não pode garantir.',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'human',
+    term: 'Human in the loop',
+    stage: 'harness',
+    eyebrow: 'Quando o portão não decide sozinho',
+    title: 'A cruzeta de volta na mão de Gepeto',
+    story:
+      'Diante do portão da rua, o boneco para. Ele sabe abrir, tem a chave e ninguém o proibiu. Mesmo assim vira, estende a cruzeta para Gepeto e espera. Quem puxa os fios naquele passo é uma pessoa, e só naquele passo.',
+    lesson:
+      'Autonomia não é tudo ou nada. Um agente pode decidir sozinho o caminho inteiro e ainda assim parar antes de um punhado de ações, entregar a decisão a uma pessoa e continuar com a resposta dela. É isso que separa um sistema que roda em produção de uma demonstração: não é o modelo acertar sempre, é existir um ponto combinado onde o erro fica barato. A pergunta de projeto não é se o agente é capaz, é o que acontece se ele estiver errado. Onde desfazer é fácil, deixe correr. Onde não dá para desfazer, coloque alguém. Nas Ferramentas deste estúdio essa escolha tem nome e é por ferramenta: Pergunta antes, Usa sozinho e Só leitura.',
+    blocks: [
+      {
+        type: 'points',
+        caption: 'Onde vale colocar uma pessoa',
+        items: [
+          {
+            iconName: 'lock',
+            label: 'Antes do que não se desfaz',
+            text: 'Apagar dados, mover dinheiro, publicar em nome de alguém, escrever para um cliente. O critério não é a importância da ação, é o custo de reverter. Um commit se reverte, um e-mail enviado não.',
+          },
+          {
+            iconName: 'circle-help',
+            label: 'Quando a confiança cai',
+            text: 'Um agente que sabe dizer que está inseguro pode transformar isso em um pedido de ajuda em vez de um chute. É o mesmo comportamento que a etapa Comportamento chama de "diante da dúvida", e ele só serve se houver para quem perguntar.',
+          },
+          {
+            iconName: 'clock',
+            label: 'Sabendo o que custa',
+            text: 'Cada parada troca velocidade por segurança e transfere trabalho para uma pessoa. Perguntar em tudo devolve o agente à condição de formulário caro; nunca perguntar transfere todo o risco para quem recebe o resultado. O desenho está entre os dois, e é uma decisão de produto, não de modelo.',
           },
         ],
       },

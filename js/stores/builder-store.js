@@ -15,6 +15,7 @@ import { getSoulPreset } from '../data/soul-presets.js'
 import { getKnowledgeEntry } from '../data/knowledge-library.js'
 import { CUSTOM_TOOL_PREFIX } from '../agent/tool-catalogue.js'
 import { LIMITS } from '../agent/validate.js'
+import { ALWAYS_MEMORY_KINDS } from '../data/memory.js'
 import { MAX_TONES } from '../data/tones.js'
 import { MAX_TRAITS } from '../data/traits.js'
 import { STEP_IDS } from '../data/steps.js'
@@ -542,6 +543,26 @@ export function moveKnowledgeDoc(from, to) {
 }
 
 /* -------------------------------- memory ----------------------------- */
+
+/**
+ * Add or remove a kind of memory. The context window refuses to be removed: it
+ * is a fact about how the model works, not a setting.
+ * @param {string} id
+ * @returns {void}
+ */
+export function toggleMemoryKind(id) {
+  patchAgent((agent) => {
+    // The window is not optional, so the card explains itself instead of toggling.
+    if (ALWAYS_MEMORY_KINDS.includes(id)) return agent
+
+    const has = agent.memory.kinds.includes(id)
+    const kinds = has
+      ? agent.memory.kinds.filter((kind) => kind !== id)
+      : [...agent.memory.kinds, id]
+
+    return { ...agent, memory: { ...agent.memory, kinds } }
+  })
+}
 
 /**
  * @param {import('../agent/types.js').MemoryType} type

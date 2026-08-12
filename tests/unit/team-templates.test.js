@@ -12,11 +12,21 @@ beforeEach(() => {
 
 describe('the catalogue', () => {
   it('ships one team per shape worth showing', () => {
-    expect(TEAM_TEMPLATES.map((team) => team.id)).toEqual(['marketing', 'quality', 'editorial'])
+    expect(TEAM_TEMPLATES.map((team) => team.id)).toEqual([
+      'marketing',
+      'quality',
+      'editorial',
+      'data',
+      'accounting',
+      'tax',
+    ])
 
     expect(getTeamTemplate('marketing')).toMatchObject({ label: 'Time de Marketing', mode: 'managed' })
     expect(getTeamTemplate('quality')).toMatchObject({ label: 'Plantão de Qualidade', mode: 'chain' })
     expect(getTeamTemplate('editorial')).toMatchObject({ label: 'Mesa de Revisão', mode: 'review' })
+    expect(getTeamTemplate('accounting')).toMatchObject({ label: 'Time de Contabilidade', mode: 'chain' })
+    expect(getTeamTemplate('tax')).toMatchObject({ label: 'Time Fiscal', mode: 'review' })
+    expect(getTeamTemplate('data')).toMatchObject({ label: 'Time de Dados', mode: 'chain' })
   })
 
   it('gives a lead exactly to the teams whose mode needs one', () => {
@@ -160,6 +170,47 @@ describe('creating the example team', () => {
     // No agent is shared between the two copies.
     const firstIds = new Set(first.members.map((member) => member.agentId))
     for (const member of second.members) expect(firstIds.has(member.agentId)).toBe(false)
+  })
+
+  it('builds the accounting line from lançamento to fechamento', () => {
+    const team = /** @type {import('../../js/team/types.js').Team} */ (
+      createTeamFromTemplate('accounting')
+    )
+    const names = team.members.map(
+      (member) => listAgents().find((agent) => agent.id === member.agentId)?.name
+    )
+
+    expect(team.mode).toBe('chain')
+    expect(team.leadId).toBeNull()
+    expect(names).toEqual(['Analista Contábil', 'Analista de Dados', 'Controller'])
+  })
+
+  it('puts the tax auditor in the evaluator seat, not the one who apurou', () => {
+    const team = /** @type {import('../../js/team/types.js').Team} */ (
+      createTeamFromTemplate('tax')
+    )
+    const evaluator = listAgents().find((agent) => agent.id === team.leadId)
+
+    expect(team.mode).toBe('review')
+    expect(evaluator?.name).toBe(getTemplate('tax-auditor')?.agent.name)
+  })
+
+  it('builds the data pipeline in the order the work happens', () => {
+    const team = /** @type {import('../../js/team/types.js').Team} */ (
+      createTeamFromTemplate('data')
+    )
+    const names = team.members.map(
+      (member) => listAgents().find((agent) => agent.id === member.agentId)?.name
+    )
+
+    expect(team.mode).toBe('chain')
+    // Mapear vem antes de transformar, e conferir antes de desenhar o painel.
+    expect(names).toEqual([
+      'Mapeador de Dados',
+      'Engenheiro de Dados',
+      'Analista de Dados',
+      'Designer de Dashboards',
+    ])
   })
 
   it('refuses an id the catalogue does not have', () => {

@@ -5,6 +5,7 @@ import { h, on, setChildren } from '../lib/dom.js'
 import { icon } from '../icons.js'
 import { LIMITS } from '../agent/validate.js'
 import {
+  MEMORY_KINDS,
   MEMORY_REMEMBER_OPTIONS,
   MEMORY_RESTRICTION_SUGGESTIONS,
   MEMORY_TYPES,
@@ -14,6 +15,7 @@ import {
   builderStore,
   removeRestriction,
   setMemoryType,
+  toggleMemoryKind,
   toggleRemember,
 } from '../stores/builder-store.js'
 import { optionCard, traitChip, wireRadioGroup } from '../ui/option-card.js'
@@ -43,6 +45,41 @@ export function memoryStep() {
       )
       wireRadioGroup(group)
       setChildren(container, group)
+    }
+  )
+
+  /*
+   * A different axis from the one above: those four say for how long the agent
+   * remembers, these say what shape the memory has. The window is on the list
+   * even though nobody picks it, because knowing it is the only place the model
+   * reads is the most useful thing this step can teach.
+   */
+  const kinds = reactiveBlock(
+    (state) => state.agent.memory.kinds,
+    (container) => {
+      const chosen = builderStore.getState().agent.memory.kinds
+
+      setChildren(
+        container,
+        h(
+          'div',
+          { class: 'card-list', 'aria-label': 'Tipos de memória' },
+          ...MEMORY_KINDS.map((kind) =>
+            optionCard({
+              role: 'checkbox',
+              layout: 'row',
+              label: kind.label,
+              description: kind.description,
+              iconName: kind.icon,
+              focusKey: `memkind-${kind.id}`,
+              selected: chosen.includes(kind.id),
+              blocked: kind.always,
+              blockedHint: kind.tooltip,
+              onToggle: () => toggleMemoryKind(kind.id),
+            })
+          )
+        )
+      )
     }
   )
 
@@ -161,7 +198,16 @@ export function memoryStep() {
 
   const element = stepShell(
     'memory',
-    section({ title: 'Quanto ele deve lembrar?', emoji: '🧠' }, types.element),
+    section({ title: 'Quanto ele deve lembrar?', emoji: '⏳' }, types.element),
+    section(
+      {
+        title: 'Tipos de memória',
+        emoji: '🧠',
+        description:
+          'O que ele guarda, e em que forma. A janela de contexto todo agente tem: é o único lugar em que o modelo lê, e as outras são maneiras de trazer a coisa certa de volta para dentro dela.',
+      },
+      kinds.element
+    ),
     section(
       { title: 'O que vale a pena lembrar', emoji: '📌', description: 'Marque o que ajuda seu agente a continuar de onde parou.' },
       remember.element
@@ -180,6 +226,7 @@ export function memoryStep() {
     element,
     destroy: () => {
       types.destroy()
+      kinds.destroy()
       remember.destroy()
       restrictions.destroy()
     },
